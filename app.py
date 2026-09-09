@@ -253,6 +253,7 @@ if jumlah_sekarang < 5:
     captured_image = st.camera_input(
         "Arahkan kamera ke dokumen",
         key=f"kamera_{st.session_state.kamera_key}",
+        resolution="1080p",
         width="stretch"
     )
     
