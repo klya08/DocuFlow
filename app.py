@@ -11,7 +11,6 @@ from googleapiclient.http import MediaIoBaseUpload
 # ==========================================
 # FUNGSI GOOGLE DRIVE - FOLDER
 # ==========================================
-
 def get_drive_folders(drive_service):
     """Mengambil daftar folder dari Google Drive user."""
     results = drive_service.files().list(
@@ -253,7 +252,8 @@ st.info(f"Jumlah jepretan saat ini: {jumlah_sekarang} / 5")
 if jumlah_sekarang < 5:
     captured_image = st.camera_input(
         "Arahkan kamera ke dokumen",
-        key=f"kamera_{st.session_state.kamera_key}"
+        key=f"kamera_{st.session_state.kamera_key}",
+        width="stretch"
     )
     
     if captured_image is not None:
