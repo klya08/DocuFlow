@@ -296,9 +296,6 @@ if jumlah_sekarang < 5:
         key=f"kamera_{st.session_state.kamera_key}",
         mode=WebRtcMode.SENDRECV,
 
-        # LANGSUNG MENJALANKAN KAMERA
-        desired_playing_state=True,
-
         # PRIORITASKAN KAMERA BELAKANG
         media_stream_constraints={
             "video": {
