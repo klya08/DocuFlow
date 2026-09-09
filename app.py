@@ -292,9 +292,11 @@ if jumlah_sekarang < 5:
         unsafe_allow_html=True
     )
 
-    webrtc_ctx = webrtc_streamer(
+webrtc_ctx = webrtc_streamer(
     key=f"kamera_{st.session_state.kamera_key}",
     mode=WebRtcMode.SENDRECV,
+
+    desired_playing_state=True,
 
     media_stream_constraints={
         "video": {
