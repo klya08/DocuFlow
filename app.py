@@ -292,50 +292,56 @@ if jumlah_sekarang < 5:
         unsafe_allow_html=True
     )
 
-webrtc_ctx = webrtc_streamer(
-    key=f"kamera_{st.session_state.kamera_key}",
-    mode=WebRtcMode.SENDRECV,
+    webrtc_ctx = webrtc_streamer(
+        key=f"kamera_{st.session_state.kamera_key}",
+        mode=WebRtcMode.SENDRECV,
 
-    desired_playing_state=True,
+        # LANGSUNG MENJALANKAN KAMERA
+        desired_playing_state=True,
 
-    media_stream_constraints={
-        "video": {
-            "facingMode": {
-                "ideal": "environment"
+        # PRIORITASKAN KAMERA BELAKANG
+        media_stream_constraints={
+            "video": {
+                "facingMode": {
+                    "ideal": "environment"
+                }
+            },
+            "audio": False
+        },
+
+        # KONFIGURASI KONEKSI WEBRTC
+        rtc_configuration={
+            "iceServers": [
+                {
+                    "urls": [
+                        "stun:stun.l.google.com:19302"
+                    ]
+                }
+            ]
+        },
+
+        # TAMPILAN VIDEO
+        video_html_attrs={
+            "autoPlay": True,
+            "controls": False,
+            "muted": True,
+            "playsInline": True,
+            "style": {
+                "width": "100%",
+                "height": "70vh",
+                "min-height": "500px",
+                "object-fit": "cover",
+                "border-radius": "12px",
+                "display": "block"
             }
         },
-        "audio": False
-    },
 
-    rtc_configuration={
-        "iceServers": [
-            {
-                "urls": [
-                    "stun:stun.l.google.com:19302"
-                ]
-            }
-        ]
-    },
-
-    video_html_attrs={
-        "autoPlay": True,
-        "controls": False,
-        "muted": True,
-        "playsInline": True,
-        "style": {
-            "width": "100%",
-            "height": "70vh",
-            "min-height": "500px",
-            "object-fit": "cover",
-            "border-radius": "12px",
-            "display": "block"
-        }
-    },
-
-    media_toggle_controls=False
-)
+        # SEMBUNYIKAN KONTROL PILIH KAMERA/MIC
+        media_toggle_controls=False
+    )
 
 else:
+
     st.warning(
         "Batas maksimal 5 foto per dokumen sudah tercapai!"
     )
