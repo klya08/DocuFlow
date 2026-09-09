@@ -158,17 +158,18 @@ if not access_token:
 # 4. MEMBUAT KONEKSI GOOGLE DRIVE
 # ==========================================
 try:
+    # Access token dari hasil login Google
     credentials = Credentials(
-        token=access_token,
-        scopes=["https://www.googleapis.com/auth/drive.file"]
+        token=access_token
     )
-    
+
     drive_service = build(
         "drive",
         "v3",
         credentials=credentials,
         cache_discovery=False
     )
+
 except Exception as e:
     st.error(f"Gagal menghubungkan ke Google Drive: {e}")
     st.stop()
@@ -179,10 +180,35 @@ except Exception as e:
 st.subheader("📁 Folder Penyimpanan")
 
 try:
-    # Hanya minta data ke Google Drive jika belum ada di memori
+    # Ambil daftar folder dari Google Drive
+    # Jika token sudah kedaluwarsa, pengguna perlu login ulang
     if "daftar_folder_drive" not in st.session_state:
-        st.session_state.daftar_folder_drive = get_drive_folders(drive_service)
-        
+        try:
+            st.session_state.daftar_folder_drive = get_drive_folders(
+                drive_service
+            )
+        except Exception as drive_error:
+            error_text = str(drive_error).lower()
+
+            if (
+                "refresh_token" in error_text
+                or "credentials do not contain" in error_text
+                or "invalid_grant" in error_text
+                or "401" in error_text
+                or "unauthorized" in error_text
+            ):
+                st.error(
+                    "🔐 Sesi Google sudah kedaluwarsa. "
+                    "Silakan logout lalu login kembali dengan Google."
+                )
+
+                if st.button("🔄 Login Google Lagi"):
+                    st.logout()
+
+                st.stop()
+
+            raise drive_error
+
     folders = st.session_state.daftar_folder_drive
     
     # Folder utama / root
