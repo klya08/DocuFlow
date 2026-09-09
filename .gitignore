@@ -1,0 +1,11 @@
+# Folder environment Python
+.venv/
+venv/
+env/
+
+# Folder rahasia Streamlit
+.streamlit/
+
+# File cache Python
+__pycache__/
+*.pyc
