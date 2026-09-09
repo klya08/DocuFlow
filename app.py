@@ -320,7 +320,7 @@ if jumlah_sekarang < 5:
             "controls": False,
             "style": {
                 "width": "100%",
-                "height": "auto",
+                "height": "70vh",
                 "object-fit": "cover",
                 "border-radius": "12px"
             }
