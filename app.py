@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 import streamlit as st
 from PIL import Image, ImageOps, ImageEnhance
+from streamlit_webrtc import webrtc_streamer, WebRtcMode
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload
@@ -250,29 +251,62 @@ st.info(f"Jumlah jepretan saat ini: {jumlah_sekarang} / 5")
 # 7. ANTARMUKA KAMERA
 # ==========================================
 if jumlah_sekarang < 5:
-    captured_image = st.camera_input(
-        "Arahkan kamera ke dokumen",
-        key=f"kamera_{st.session_state.kamera_key}",
-        resolution="1080p",
-        width="stretch"
+
+    st.markdown(
+        """
+        <div style="
+            text-align:center;
+            font-size:18px;
+            font-weight:600;
+            margin-bottom:10px;
+        ">
+            📷 Arahkan kamera ke dokumen
+        </div>
+        """,
+        unsafe_allow_html=True
     )
-    
-    if captured_image is not None:
-        if st.button("Simpan Halaman Ini"):
-            img = Image.open(captured_image)
-            
-            # --- FILTER ALA CAMSCANNER ---
-            img_gray = ImageOps.grayscale(img)
-            enhancer = ImageEnhance.Contrast(img_gray)
-            img_filtered = enhancer.enhance(2.0)
-            
-            # Pastikan HANYA ADA SATU baris append ini di sini!
-            st.session_state.daftar_foto.append(img_filtered)
-            
-            st.session_state.kamera_key += 1
-            st.rerun()
+
+    webrtc_ctx = webrtc_streamer(
+        key=f"kamera_{st.session_state.kamera_key}",
+        mode=WebRtcMode.SENDRECV,
+
+        media_stream_constraints={
+            "video": {
+                "facingMode": {
+                    "ideal": "environment"
+                }
+            },
+            "audio": False
+        },
+
+        rtc_configuration={
+            "iceServers": [
+                {
+                    "urls": [
+                        "stun:stun.l.google.com:19302"
+                    ]
+                }
+            ]
+        },
+
+        video_html_attrs={
+            "autoPlay": True,
+            "controls": False,
+            "style": {
+                "width": "100%",
+                "height": "auto",
+                "object-fit": "cover",
+                "border-radius": "12px"
+            }
+        },
+
+        media_toggle_controls=False
+    )
+
 else:
-    st.warning("Batas maksimal 5 foto per dokumen sudah tercapai!")
+    st.warning(
+        "Batas maksimal 5 foto per dokumen sudah tercapai!"
+    )
 
 # ==========================================
 # 8. PREVIEW FOTO
