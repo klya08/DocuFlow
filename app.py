@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 import streamlit as st
 from PIL import Image, ImageOps, ImageEnhance
-from streamlit_webrtc import webrtc_streamer, WebRtcMode
+from streamlit-webrtc import webrtc-streamer, WebRtcMode
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload
