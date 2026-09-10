@@ -15,12 +15,12 @@ from googleapiclient.http import MediaIoBaseUpload
 st.set_page_config(
     page_title="DocuFlow | Document Management",
     page_icon="📄",
-    layout="wide", # Menggunakan wide agar bisa membagi 2 kolom dengan lega di Desktop
+    layout="wide",
     initial_sidebar_state="collapsed"
 )
 
 # =========================================================
-# INJEKSI CSS KUSTOM (UI/UX SAAS MODERN)
+# INJEKSI CSS KUSTOM (UI/UX SAAS MODERN UNTUK DASHBOARD)
 # =========================================================
 CUSTOM_THEME_CSS = """
 <style>
@@ -30,8 +30,8 @@ CUSTOM_THEME_CSS = """
 /* Global Reset & Typography */
 html, body, [class*="css"] {
     font-family: 'Plus Jakarta Sans', sans-serif !important;
-    background-color: #F8F9FA !important; /* Off-white background */
-    color: #1F2937 !important; /* Dark Charcoal */
+    background-color: #F8F9FA !important; 
+    color: #1F2937 !important; 
 }
 
 /* Hide Streamlit default elements for clean look */
@@ -61,15 +61,10 @@ footer {visibility: hidden;}
 .nav-logo {
     font-size: 20px;
     font-weight: 700;
-    color: #065F46; /* Deep Emerald */
+    color: #065F46; 
     display: flex;
     align-items: center;
     gap: 8px;
-}
-.nav-user {
-    font-size: 14px;
-    color: #6B7280;
-    font-weight: 500;
 }
 
 /* Landing Page Hero Section */
@@ -119,7 +114,7 @@ footer {visibility: hidden;}
 .login-icon-wrapper {
     width: 64px;
     height: 64px;
-    background: #D1FAE5; /* Soft Mint */
+    background: #D1FAE5; 
     border-radius: 16px;
     display: flex;
     align-items: center;
@@ -194,325 +189,1115 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
 }
 </style>
 """
+st.markdown(CUSTOM_THEME_CSS, unsafe_allow_html=True)
 
 # =========================================================
-# CUSTOM CAMERA - HTML & CSS (Diperbarui dgn font baru)
+# CUSTOM CAMERA - STREAMLIT COMPONENT V2 (PERSIS ASLI MILIK USER)
 # =========================================================
+
 CAMERA_HTML = """
 <div class="scanner-app">
+
     <div class="scanner-header">
-        <button id="backButton" class="icon-button">←</button>
+        <button id="backButton" class="icon-button">
+            ←
+        </button>
+
         <div class="header-title">
             <div class="title">Scan Dokumen</div>
-            <div id="pageCounter" class="counter">0 / 5 halaman</div>
+            <div id="pageCounter" class="counter">
+                0 / 5 halaman
+            </div>
         </div>
+
         <div class="header-spacer"></div>
     </div>
+
+
     <div id="cameraArea" class="camera-area">
-        <video id="camera" autoplay playsinline muted></video>
-        <div class="document-guide">
-            <div class="corner top-left"></div>
-            <div class="corner top-right"></div>
-            <div class="corner bottom-left"></div>
-            <div class="corner bottom-right"></div>
+
+        <video
+            id="camera"
+            autoplay
+            playsinline
+            muted
+        ></video>
+
+        <div class="dark-top"></div>
+        <div class="dark-bottom"></div>
+
+        <div id="cameraMessage" class="camera-message">
+            Tekan tombol kamera untuk memulai
         </div>
-        <div id="cameraMessage" class="camera-message">Tekan tombol kamera untuk memulai</div>
+
     </div>
+
     <div class="bottom-panel">
-        <div id="thumbnailContainer" class="thumbnail-container"></div>
-        <div class="camera-controls">
-            <button id="cancelButton" class="secondary-button">Batal</button>
-            <button id="captureButton" class="capture-button"><span></span></button>
-            <button id="doneButton" class="ok-button">Selesai</button>
+
+        <div id="thumbnailContainer" class="thumbnail-container">
         </div>
+
+        <div class="camera-controls">
+
+            <button id="cancelButton" class="secondary-button">
+                Batal
+            </button>
+
+            <button id="captureButton" class="capture-button">
+                <span></span>
+            </button>
+
+            <button id="doneButton" class="ok-button">
+                OK
+            </button>
+
+        </div>
+
     </div>
+
+
     <div id="startOverlay" class="start-overlay">
-        <div class="camera-icon">📄</div>
-        <div class="start-title">Siap memindai?</div>
-        <div class="start-description">Kamera belakang akan aktif secara otomatis untuk memindai dokumen Anda.</div>
-        <button id="startButton" class="start-button">Mulai Pemindai</button>
+
+        <div class="camera-icon">
+            📷
+        </div>
+
+        <div class="start-title">
+            Siap untuk scan?
+        </div>
+
+        <div class="start-description">
+            Kamera belakang akan digunakan secara otomatis.
+        </div>
+
+        <button id="startButton" class="start-button">
+            Mulai Kamera
+        </button>
+
     </div>
+
 </div>
 """
 
+
 CAMERA_CSS = """
-* { box-sizing: border-box; }
+
+* {
+    box-sizing: border-box;
+}
+
 .scanner-app {
-    width: 100%; min-height: 720px; background: #111827; color: white;
-    border-radius: 24px; overflow: hidden; position: relative;
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    width: 100%;
+    min-height: 720px;
+    background: #111;
+    color: white;
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
 }
+
+
 /* HEADER */
+
 .scanner-header {
-    height: 70px; background: #1F2937; display: flex; align-items: center;
-    padding: 8px 16px; position: relative; z-index: 20; border-bottom: 1px solid #374151;
+    height: 64px;
+    background: #171717;
+
+    display: flex;
+    align-items: center;
+
+    padding: 8px 12px;
+
+    position: relative;
+    z-index: 20;
 }
+
 .icon-button {
-    width: 44px; height: 44px; border: none; background: transparent; color: white;
-    font-size: 28px; cursor: pointer; border-radius: 50%; transition: background 0.2s;
+    width: 44px;
+    height: 44px;
+
+    border: none;
+    background: transparent;
+
+    color: white;
+
+    font-size: 30px;
+
+    cursor: pointer;
+
+    border-radius: 50%;
 }
-.icon-button:hover { background: rgba(255,255,255,0.1); }
-.header-title { flex: 1; text-align: center; }
-.title { font-size: 16px; font-weight: 600; letter-spacing: 0.5px; }
-.counter { font-size: 12px; color: #9CA3AF; margin-top: 4px; }
-.header-spacer { width: 44px; }
+
+.icon-button:active {
+    background: rgba(255,255,255,0.15);
+}
+
+.header-title {
+    flex: 1;
+    text-align: center;
+}
+
+.title {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.counter {
+    font-size: 12px;
+    color: #aaa;
+    margin-top: 2px;
+}
+
+.header-spacer {
+    width: 44px;
+}
+
 
 /* CAMERA */
-.camera-area { position: relative; width: 100%; height: 530px; background: #000; overflow: hidden; }
-#camera { width: 100%; height: 100%; object-fit: cover; display: block; background: #000; }
+
+.camera-area {
+    position: relative;
+    width: 100%;
+    height: 530px;
+    background: #000;
+    overflow: hidden;
+}
+
+#camera {
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+    display: block;
+
+    background: #000;
+}
+
 
 /* GUIDE */
+
 .document-guide {
-    position: absolute; left: 8%; right: 8%; top: 12%; bottom: 12%;
-    border: 1px solid rgba(255,255,255,0.4); border-radius: 12px; pointer-events: none;
-    box-shadow: 0 0 0 9999px rgba(0,0,0,0.4);
+
+    position: absolute;
+
+    left: 7%;
+    right: 7%;
+
+    top: 12%;
+    bottom: 12%;
+
+    border: 2px solid rgba(255,255,255,0.85);
+
+    border-radius: 8px;
+
+    pointer-events: none;
+
+    box-shadow:
+        0 0 0 9999px rgba(0,0,0,0.18);
 }
-.corner { position: absolute; width: 32px; height: 32px; border-color: #10B981; border-style: solid; }
-.top-left { left: -2px; top: -2px; border-width: 4px 0 0 4px; border-top-left-radius: 12px;}
-.top-right { right: -2px; top: -2px; border-width: 4px 4px 0 0; border-top-right-radius: 12px;}
-.bottom-left { left: -2px; bottom: -2px; border-width: 0 0 4px 4px; border-bottom-left-radius: 12px;}
-.bottom-right { right: -2px; bottom: -2px; border-width: 0 4px 4px 0; border-bottom-right-radius: 12px;}
+
+
+/* CORNERS */
+
+.corner {
+    position: absolute;
+
+    width: 32px;
+    height: 32px;
+
+    border-color: white;
+    border-style: solid;
+}
+
+.top-left {
+    left: -2px;
+    top: -2px;
+
+    border-width: 4px 0 0 4px;
+}
+
+.top-right {
+    right: -2px;
+    top: -2px;
+
+    border-width: 4px 4px 0 0;
+}
+
+.bottom-left {
+    left: -2px;
+    bottom: -2px;
+
+    border-width: 0 0 4px 4px;
+}
+
+.bottom-right {
+    right: -2px;
+    bottom: -2px;
+
+    border-width: 0 4px 4px 0;
+}
+
 
 /* MESSAGE */
+
 .camera-message {
-    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
-    background: rgba(17, 24, 39, 0.8); padding: 12px 20px; border-radius: 24px;
-    font-size: 14px; color: white; text-align: center; pointer-events: none; backdrop-filter: blur(4px);
+
+    position: absolute;
+
+    left: 50%;
+    top: 50%;
+
+    transform: translate(-50%, -50%);
+
+    background: rgba(0,0,0,0.55);
+
+    padding: 10px 16px;
+
+    border-radius: 20px;
+
+    font-size: 14px;
+
+    color: white;
+
+    text-align: center;
+
+    pointer-events: none;
 }
+
 
 /* BOTTOM */
-.bottom-panel { background: #1F2937; padding: 16px; margin-top: 0; }
-.thumbnail-container { min-height: 84px; display: flex; gap: 12px; overflow-x: auto; padding: 4px 0 16px; }
+.bottom-panel {
+    background: #171717;
+    padding: 0 12px 12px;
+    margin-top: 0;
+}
+
+
+/* THUMBNAILS */
+
+.thumbnail-container {
+
+    min-height: 84px;
+
+    display: flex;
+
+    gap: 8px;
+
+    overflow-x: auto;
+
+    padding: 4px 0 10px;
+}
+
 .thumbnail {
-    position: relative; width: 60px; height: 75px; flex-shrink: 0; border-radius: 8px;
-    overflow: hidden; border: 2px solid #374151; background: #111827;
+
+    position: relative;
+
+    width: 58px;
+    height: 72px;
+
+    flex-shrink: 0;
+
+    border-radius: 7px;
+
+    overflow: hidden;
+
+    border: 2px solid #555;
+
+    background: #333;
 }
-.thumbnail img { width: 100%; height: 100%; object-fit: cover; }
+
+.thumbnail img {
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+}
+
 .thumbnail-number {
-    position: absolute; left: 4px; top: 4px; background: rgba(0,0,0,0.75); color: white;
-    width: 20px; height: 20px; border-radius: 50%; font-size: 10px; font-weight: 600;
-    display: flex; align-items: center; justify-content: center; backdrop-filter: blur(2px);
+
+    position: absolute;
+
+    left: 4px;
+    top: 4px;
+
+    background: rgba(0,0,0,0.7);
+
+    color: white;
+
+    width: 20px;
+    height: 20px;
+
+    border-radius: 50%;
+
+    font-size: 11px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
 }
+
 .thumbnail-delete {
-    position: absolute; right: 4px; top: 4px; width: 22px; height: 22px; border: none;
-    border-radius: 50%; background: #EF4444; color: white; cursor: pointer; font-size: 14px;
-    padding: 0; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+
+    position: absolute;
+
+    right: 3px;
+    top: 3px;
+
+    width: 20px;
+    height: 20px;
+
+    border: none;
+
+    border-radius: 50%;
+
+    background: rgba(0,0,0,0.7);
+
+    color: white;
+
+    cursor: pointer;
+
+    font-size: 12px;
+
+    padding: 0;
 }
+
 
 /* CONTROLS */
-.camera-controls { display: flex; align-items: center; justify-content: space-between; padding: 8px 16px 0; }
-.secondary-button, .ok-button {
-    border: none; border-radius: 12px; height: 44px; padding: 0 24px;
-    font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+
+.camera-controls {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    padding: 4px 4px 0;
 }
-.secondary-button { background: #374151; color: white; }
-.secondary-button:hover { background: #4B5563; }
-.ok-button { background: #065F46; color: white; } /* Emerald */
-.ok-button:hover { background: #044E3A; }
-.ok-button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.secondary-button,
+.ok-button {
+
+    border: none;
+
+    border-radius: 12px;
+
+    height: 44px;
+
+    padding: 0 20px;
+
+    font-size: 15px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+.secondary-button {
+
+    background: #2c2c2c;
+
+    color: white;
+}
+
+.ok-button {
+
+    background: #ffffff;
+
+    color: #111;
+}
+
+.ok-button:disabled {
+
+    opacity: 0.35;
+
+    cursor: not-allowed;
+}
+
 
 /* SHUTTER */
+
 .capture-button {
-    width: 72px; height: 72px; border-radius: 50%; border: 4px solid white; background: transparent;
-    display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; transition: transform 0.2s;
+
+    width: 72px;
+    height: 72px;
+
+    border-radius: 50%;
+
+    border: 5px solid white;
+
+    background: transparent;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    cursor: pointer;
+
+    padding: 0;
 }
+
 .capture-button span {
-    width: 54px; height: 54px; background: white; border-radius: 50%; display: block; transition: all 0.15s;
+
+    width: 56px;
+    height: 56px;
+
+    background: white;
+
+    border-radius: 50%;
+
+    display: block;
+
+    transition: transform 0.1s;
 }
-.capture-button:active span { transform: scale(0.85); background: #D1FAE5; }
+
+.capture-button:active span {
+
+    transform: scale(0.85);
+}
+
 
 /* START OVERLAY */
+
 .start-overlay {
-    position: absolute; inset: 70px 0 0 0; background: rgba(17, 24, 39, 0.98); z-index: 30;
-    display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 32px;
+
+    position: absolute;
+
+    inset: 64px 0 0 0;
+
+    background: rgba(15,15,15,0.97);
+
+    z-index: 30;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    text-align: center;
+
+    padding: 30px;
 }
-.camera-icon { font-size: 72px; margin-bottom: 24px; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.2)); }
-.start-title { font-size: 26px; font-weight: 700; margin-bottom: 12px; }
-.start-description { color: #9CA3AF; font-size: 15px; line-height: 1.6; max-width: 320px; margin-bottom: 32px; }
+
+.camera-icon {
+
+    font-size: 64px;
+
+    margin-bottom: 20px;
+}
+
+.start-title {
+
+    font-size: 24px;
+
+    font-weight: 700;
+
+    margin-bottom: 8px;
+}
+
+.start-description {
+
+    color: #aaa;
+
+    font-size: 14px;
+
+    line-height: 1.5;
+
+    max-width: 300px;
+
+    margin-bottom: 24px;
+}
+
 .start-button {
-    border: none; background: white; color: #111827; font-size: 16px; font-weight: 700;
-    padding: 16px 32px; border-radius: 16px; cursor: pointer; transition: transform 0.2s;
+
+    border: none;
+
+    background: white;
+
+    color: #111;
+
+    font-size: 16px;
+
+    font-weight: 700;
+
+    padding: 14px 28px;
+
+    border-radius: 14px;
+
+    cursor: pointer;
 }
-.start-button:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+
 
 /* MOBILE */
+
 @media (max-width: 600px) {
-    .scanner-app { border-radius: 0; min-height: 100vh; }
-    .camera-area { height: calc(100vh - 220px); min-height: 400px; }
-    .bottom-panel { padding: 12px 12px 24px; }
-    .document-guide { left: 5%; right: 5%; top: 10%; bottom: 10%; }
+
+    .scanner-app {
+        border-radius: 0;
+        min-height: 100vh;
+    }
+
+    .camera-area {
+        height: calc(100vh - 200px);
+        min-height: 400px;
+    }
+
+    .bottom-panel {
+        padding: 0 12px 12px;
+    }
+
+    .thumbnail-container {
+        min-height: 0;
+        padding: 0;
+    }
+
+    .camera-controls {
+        padding: 8px 4px 0;
+    }
+
+}
+
+    .document-guide {
+
+        left: 5%;
+        right: 5%;
+
+        top: 10%;
+        bottom: 10%;
+    }
+
 }
 """
 
+
 CAMERA_JS = """
+
 export default function(component) {
-    const { parentElement, setTriggerValue } = component;
-    const video = parentElement.querySelector("#camera");
-    const startButton = parentElement.querySelector("#startButton");
-    const captureButton = parentElement.querySelector("#captureButton");
-    const cancelButton = parentElement.querySelector("#cancelButton");
-    const doneButton = parentElement.querySelector("#doneButton");
-    const startOverlay = parentElement.querySelector("#startOverlay");
-    const cameraMessage = parentElement.querySelector("#cameraMessage");
-    const thumbnailContainer = parentElement.querySelector("#thumbnailContainer");
-    const pageCounter = parentElement.querySelector("#pageCounter");
+
+    const {
+        parentElement,
+        setTriggerValue
+    } = component;
+
+
+    const video =
+        parentElement.querySelector("#camera");
+
+    const startButton =
+        parentElement.querySelector("#startButton");
+
+    const captureButton =
+        parentElement.querySelector("#captureButton");
+
+    const cancelButton =
+        parentElement.querySelector("#cancelButton");
+
+    const doneButton =
+        parentElement.querySelector("#doneButton");
+
+    const startOverlay =
+        parentElement.querySelector("#startOverlay");
+
+    const cameraMessage =
+        parentElement.querySelector("#cameraMessage");
+
+    const thumbnailContainer =
+        parentElement.querySelector("#thumbnailContainer");
+
+    const pageCounter =
+        parentElement.querySelector("#pageCounter");
+
 
     let stream = null;
+
     let photos = [];
 
+
+    /* =========================================
+       UPDATE COUNTER
+    ========================================= */
+
     function updateCounter() {
-        pageCounter.textContent = photos.length + " / 5 halaman";
-        doneButton.disabled = photos.length === 0;
+
+        pageCounter.textContent =
+            photos.length + " / 5 halaman";
+
+        doneButton.disabled =
+            photos.length === 0;
     }
 
+
+    /* =========================================
+       RENDER THUMBNAILS
+    ========================================= */
+
     function renderThumbnails() {
+
         thumbnailContainer.innerHTML = "";
+
         photos.forEach((photo, index) => {
-            const wrapper = document.createElement("div");
+
+            const wrapper =
+                document.createElement("div");
+
             wrapper.className = "thumbnail";
-            
-            const image = document.createElement("img");
+
+
+            const image =
+                document.createElement("img");
+
             image.src = photo;
-            
-            const number = document.createElement("div");
-            number.className = "thumbnail-number";
-            number.textContent = index + 1;
-            
-            const deleteButton = document.createElement("button");
-            deleteButton.className = "thumbnail-delete";
-            deleteButton.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"></path></svg>`;
-            
+
+
+            const number =
+                document.createElement("div");
+
+            number.className =
+                "thumbnail-number";
+
+            number.textContent =
+                index + 1;
+
+
+            const deleteButton =
+                document.createElement("button");
+
+            deleteButton.className =
+                "thumbnail-delete";
+
+            deleteButton.textContent =
+                "×";
+
+
             deleteButton.onclick = () => {
+
                 photos.splice(index, 1);
+
                 renderThumbnails();
+
                 updateCounter();
             };
-            
+
+
             wrapper.appendChild(image);
+
             wrapper.appendChild(number);
+
             wrapper.appendChild(deleteButton);
+
             thumbnailContainer.appendChild(wrapper);
+
         });
     }
 
+
+    /* =========================================
+       START CAMERA
+    ========================================= */
+
     async function startCamera() {
+
         try {
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                throw new Error("Browser tidak mendukung akses kamera.");
+
+            if (
+                !navigator.mediaDevices ||
+                !navigator.mediaDevices.getUserMedia
+            ) {
+
+                throw new Error(
+                    "Browser tidak mendukung akses kamera."
+                );
             }
-            stream = await navigator.mediaDevices.getUserMedia({
-                video: {
-                    facingMode: { ideal: "environment" },
-                    width: { ideal: 2560 },
-                    height: { ideal: 1440 },
-                    aspectRatio: { ideal: 16 / 9 }
-                },
-                audio: false
+
+
+stream =
+    await navigator.mediaDevices.getUserMedia({
+
+        video: {
+
+            facingMode: {
+                ideal: "environment"
+            },
+
+            width: {
+                ideal: 2560
+            },
+
+            height: {
+                ideal: 1440
+            },
+
+            aspectRatio: {
+                ideal: 16 / 9
+            }
+        },
+
+        audio: false
+    });
+
+
+// =========================================
+// AKTIFKAN AUTOFOCUS KAMERA
+// =========================================
+
+const videoTrack =
+    stream.getVideoTracks()[0];
+
+if (videoTrack) {
+
+    const capabilities =
+        videoTrack.getCapabilities();
+
+    if (
+        capabilities.focusMode &&
+        capabilities.focusMode.includes("continuous")
+    ) {
+
+        try {
+
+            await videoTrack.applyConstraints({
+                advanced: [
+                    {
+                        focusMode: "continuous"
+                    }
+                ]
             });
 
-            const videoTrack = stream.getVideoTracks()[0];
-            if (videoTrack) {
-                const capabilities = videoTrack.getCapabilities();
-                if (capabilities.focusMode && capabilities.focusMode.includes("continuous")) {
-                    try {
-                        await videoTrack.applyConstraints({ advanced: [{ focusMode: "continuous" }] });
-                    } catch (focusError) {
-                        console.log("Autofocus continuous tidak tersedia:", focusError);
-                    }
-                }
-            }
+        } catch (focusError) {
+
+            console.log(
+                "Autofocus continuous tidak tersedia:",
+                focusError
+            );
+        }
+    }
+}
 
             video.srcObject = stream;
+
             await video.play();
-            startOverlay.style.display = "none";
-            cameraMessage.style.display = "none";
-            captureButton.disabled = false;
-        } catch (error) {
-            cameraMessage.textContent = "Kamera gagal dimuat: " + error.message;
-            cameraMessage.style.display = "block";
+
+            console.log(
+                "RESOLUSI KAMERA:",
+                video.videoWidth,
+                "x",
+                video.videoHeight
+            );
+
+
+            startOverlay.style.display =
+                "none";
+
+            cameraMessage.style.display =
+                "none";
+
+            captureButton.disabled =
+                false;
+
+        }
+
+        catch (error) {
+
+            cameraMessage.textContent =
+                "Kamera tidak dapat dibuka: "
+                + error.message;
+
+            cameraMessage.style.display =
+                "block";
+
+            console.error(error);
         }
     }
 
-    function capturePhoto() {
-        if (!stream) return;
-        if (photos.length >= 5) {
-            cameraMessage.textContent = "Maksimal 5 halaman tercapai.";
-            cameraMessage.style.display = "block";
-            setTimeout(() => { cameraMessage.style.display = "none"; }, 1500);
-            return;
-        }
-        if (video.videoWidth === 0 || video.videoHeight === 0) return;
+/* =========================================
+   CAPTURE PHOTO
+========================================= */
 
-        const videoWidth = video.videoWidth;
-        const videoHeight = video.videoHeight;
-        const displayWidth = video.clientWidth;
-        const displayHeight = video.clientHeight;
+function capturePhoto() {
 
-        if (displayWidth === 0 || displayHeight === 0) return;
-
-        const videoRatio = videoWidth / videoHeight;
-        const displayRatio = displayWidth / displayHeight;
-        let sourceX = 0, sourceY = 0, sourceWidth = videoWidth, sourceHeight = videoHeight;
-
-        if (videoRatio > displayRatio) {
-            sourceWidth = videoHeight * displayRatio;
-            sourceX = (videoWidth - sourceWidth) / 2;
-        } else {
-            sourceHeight = videoWidth / displayRatio;
-            sourceY = (videoHeight - sourceHeight) / 2;
-        }
-
-        const canvas = document.createElement("canvas");
-        canvas.width = Math.round(sourceWidth);
-        canvas.height = Math.round(sourceHeight);
-        
-        const context = canvas.getContext("2d");
-        context.imageSmoothingEnabled = true;
-        context.imageSmoothingQuality = "high";
-        
-        context.drawImage(video, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, canvas.width, canvas.height);
-        
-        const image = canvas.toDataURL("image/jpeg", 0.95);
-        photos.push(image);
-        renderThumbnails();
-        updateCounter();
-
-        if (photos.length >= 5) {
-            cameraMessage.textContent = "Maksimal 5 halaman tercapai.";
-            cameraMessage.style.display = "block";
-        }
+    if (!stream) {
+        return;
     }
 
-    function cancelScan() {
-        stopCamera();
-        setTriggerValue("cancel", true);
+    if (photos.length >= 5) {
+
+        cameraMessage.textContent =
+            "Maksimal 5 halaman.";
+
+        cameraMessage.style.display =
+            "block";
+
+        setTimeout(() => {
+
+            cameraMessage.style.display =
+                "none";
+
+        }, 1500);
+
+        return;
     }
 
-    function finishScan() {
-        if (photos.length === 0) return;
-        stopCamera();
-        setTriggerValue("done", photos);
+    if (
+        video.videoWidth === 0 ||
+        video.videoHeight === 0
+    ) {
+
+        return;
     }
 
-    function stopCamera() {
-        if (stream) {
-            stream.getTracks().forEach(track => track.stop());
-            stream = null;
-        }
-        video.srcObject = null;
+
+    // =========================================
+    // UKURAN ASLI KAMERA
+    // =========================================
+
+    const videoWidth =
+        video.videoWidth;
+
+    const videoHeight =
+        video.videoHeight;
+
+
+    // =========================================
+    // UKURAN PREVIEW
+    // =========================================
+
+    const displayWidth =
+        video.clientWidth;
+
+    const displayHeight =
+        video.clientHeight;
+
+
+    if (
+        displayWidth === 0 ||
+        displayHeight === 0
+    ) {
+
+        return;
     }
 
-    startButton.onclick = startCamera;
-    captureButton.onclick = capturePhoto;
-    cancelButton.onclick = cancelScan;
-    doneButton.onclick = finishScan;
+
+    // =========================================
+    // SESUAIKAN DENGAN object-fit: cover
+    // =========================================
+
+    const videoRatio =
+        videoWidth / videoHeight;
+
+    const displayRatio =
+        displayWidth / displayHeight;
+
+
+    let sourceX = 0;
+    let sourceY = 0;
+
+    let sourceWidth =
+        videoWidth;
+
+    let sourceHeight =
+        videoHeight;
+
+
+    if (videoRatio > displayRatio) {
+
+        sourceWidth =
+            videoHeight * displayRatio;
+
+        sourceX =
+            (videoWidth - sourceWidth) / 2;
+
+    } else {
+
+        sourceHeight =
+            videoWidth / displayRatio;
+
+        sourceY =
+            (videoHeight - sourceHeight) / 2;
+    }
+
+
+    // =========================================
+    // CANVAS RESOLUSI TINGGI
+    // =========================================
+
+    const canvas =
+        document.createElement("canvas");
+
+
+    canvas.width =
+        Math.round(sourceWidth);
+
+    canvas.height =
+        Math.round(sourceHeight);
+
+
+    const context =
+        canvas.getContext("2d");
+
+
+    context.imageSmoothingEnabled =
+        true;
+
+    context.imageSmoothingQuality =
+        "high";
+
+
+    context.drawImage(
+
+        video,
+
+        sourceX,
+        sourceY,
+
+        sourceWidth,
+        sourceHeight,
+
+        0,
+        0,
+
+        canvas.width,
+        canvas.height
+    );
+
+
+    // =========================================
+    // KUALITAS FOTO TINGGI
+    // =========================================
+
+    const image =
+        canvas.toDataURL(
+            "image/jpeg",
+            0.95
+        );
+
+
+    photos.push(image);
+
+
+    renderThumbnails();
 
     updateCounter();
 
-    return () => { stopCamera(); };
+
+    if (photos.length >= 5) {
+
+        cameraMessage.textContent =
+            "Maksimal 5 halaman tercapai.";
+
+        cameraMessage.style.display =
+            "block";
+    }
+}
+
+    /* =========================================
+       CANCEL
+    ========================================= */
+
+    function cancelScan() {
+
+        stopCamera();
+
+        setTriggerValue(
+            "cancel",
+            true
+        );
+    }
+
+
+    /* =========================================
+       DONE
+    ========================================= */
+
+    function finishScan() {
+
+        if (photos.length === 0) {
+
+            return;
+        }
+
+
+        stopCamera();
+
+
+        setTriggerValue(
+            "done",
+            photos
+        );
+    }
+
+
+    /* =========================================
+       STOP CAMERA
+    ========================================= */
+
+    function stopCamera() {
+
+        if (stream) {
+
+            stream
+                .getTracks()
+                .forEach(
+                    track => track.stop()
+                );
+
+            stream = null;
+        }
+
+        video.srcObject = null;
+    }
+
+
+    /* =========================================
+       EVENTS
+    ========================================= */
+
+    startButton.onclick =
+        startCamera;
+
+
+    captureButton.onclick =
+        capturePhoto;
+
+
+    cancelButton.onclick =
+        cancelScan;
+
+
+    doneButton.onclick =
+        finishScan;
+
+
+    /* =========================================
+       INITIAL
+    ========================================= */
+
+    updateCounter();
+
+
+    /* =========================================
+       CLEANUP
+    ========================================= */
+
+    return () => {
+
+        stopCamera();
+    };
 }
 """
+
 
 camera_component = st.components.v2.component(
     name="docuflow_camera",
@@ -521,95 +1306,221 @@ camera_component = st.components.v2.component(
     js=CAMERA_JS
 )
 
+
 # =========================================================
-# FUNGSI GOOGLE DRIVE & AUTO CROP (TIDAK ADA YANG DIUBAH)
+# FUNGSI GOOGLE DRIVE - FOLDER (PERSIS ASLI MILIK USER)
 # =========================================================
+
 def get_drive_folders(drive_service):
+
     results = drive_service.files().list(
         q="mimeType='application/vnd.google-apps.folder' and trashed=false",
         spaces="drive",
         fields="files(id, name, parents)",
         orderBy="name"
     ).execute()
+
     return results.get("files", [])
 
-def create_drive_folder(drive_service, folder_name, parent_id=None):
+
+def create_drive_folder(
+    drive_service,
+    folder_name,
+    parent_id=None
+):
+
     folder_metadata = {
         "name": folder_name,
         "mimeType": "application/vnd.google-apps.folder"
     }
+
     if parent_id and parent_id != "root":
-        folder_metadata["parents"] = [parent_id]
+
+        folder_metadata["parents"] = [
+            parent_id
+        ]
+
     folder = drive_service.files().create(
         body=folder_metadata,
         fields="id, name, parents"
     ).execute()
+
     return folder
 
+
+# =========================================================
+# FUNGSI PEMOTONG OTOMATIS (PERSIS ASLI MILIK USER)
+# =========================================================
+
 def potong_dokumen_otomatis(image):
+
     img_array = np.array(image)
-    gray = cv2.cvtColor(img_array, cv2.COLOR_RGB2GRAY)
-    blur = cv2.GaussianBlur(gray, (5, 5), 0)
-    edged = cv2.Canny(blur, 75, 200)
-    contours, _ = cv2.findContours(edged, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-    contours = sorted(contours, key=cv2.contourArea, reverse=True)[:5]
-    
+
+    gray = cv2.cvtColor(
+        img_array,
+        cv2.COLOR_RGB2GRAY
+    )
+
+    blur = cv2.GaussianBlur(
+        gray,
+        (5, 5),
+        0
+    )
+
+    edged = cv2.Canny(
+        blur,
+        75,
+        200
+    )
+
+    contours, _ = cv2.findContours(
+        edged,
+        cv2.RETR_LIST,
+        cv2.CHAIN_APPROX_SIMPLE
+    )
+
+    contours = sorted(
+        contours,
+        key=cv2.contourArea,
+        reverse=True
+    )[:5]
+
     dokumen_contour = None
+
     for c in contours:
-        peri = cv2.arcLength(c, True)
-        approx = cv2.approxPolyDP(c, 0.02 * peri, True)
+
+        peri = cv2.arcLength(
+            c,
+            True
+        )
+
+        approx = cv2.approxPolyDP(
+            c,
+            0.02 * peri,
+            True
+        )
+
         if len(approx) == 4:
+
             dokumen_contour = approx
+
             break
 
+
     if dokumen_contour is not None:
-        pts = dokumen_contour.reshape(4, 2)
-        rect = np.zeros((4, 2), dtype="float32")
+
+        pts = dokumen_contour.reshape(
+            4,
+            2
+        )
+
+        rect = np.zeros(
+            (4, 2),
+            dtype="float32"
+        )
+
         s = pts.sum(axis=1)
+
         rect[0] = pts[np.argmin(s)]
         rect[2] = pts[np.argmax(s)]
-        diff = np.diff(pts, axis=1)
+
+        diff = np.diff(
+            pts,
+            axis=1
+        )
+
         rect[1] = pts[np.argmin(diff)]
         rect[3] = pts[np.argmax(diff)]
+
         tl, tr, br, bl = rect
 
-        widthA = np.sqrt(((br[0] - bl[0]) ** 2) + ((br[1] - bl[1]) ** 2))
-        widthB = np.sqrt(((tr[0] - tl[0]) ** 2) + ((tr[1] - tl[1]) ** 2))
-        maxWidth = max(int(widthA), int(widthB))
 
-        heightA = np.sqrt(((tr[0] - br[0]) ** 2) + ((tr[1] - br[1]) ** 2))
-        heightB = np.sqrt(((tl[0] - bl[0]) ** 2) + ((tl[1] - bl[1]) ** 2))
-        maxHeight = max(int(heightA), int(heightB))
+        widthA = np.sqrt(
+            ((br[0] - bl[0]) ** 2)
+            +
+            ((br[1] - bl[1]) ** 2)
+        )
+
+        widthB = np.sqrt(
+            ((tr[0] - tl[0]) ** 2)
+            +
+            ((tr[1] - tl[1]) ** 2)
+        )
+
+        maxWidth = max(
+            int(widthA),
+            int(widthB)
+        )
+
+
+        heightA = np.sqrt(
+            ((tr[0] - br[0]) ** 2)
+            +
+            ((tr[1] - br[1]) ** 2)
+        )
+
+        heightB = np.sqrt(
+            ((tl[0] - bl[0]) ** 2)
+            +
+            ((tl[1] - bl[1]) ** 2)
+        )
+
+        maxHeight = max(
+            int(heightA),
+            int(heightB)
+        )
+
 
         if maxWidth <= 0 or maxHeight <= 0:
+
             return image
 
-        dst = np.array([
-            [0, 0],
-            [maxWidth - 1, 0],
-            [maxWidth - 1, maxHeight - 1],
-            [0, maxHeight - 1]
-        ], dtype="float32")
 
-        M = cv2.getPerspectiveTransform(rect, dst)
-        warped = cv2.warpPerspective(img_array, M, (maxWidth, maxHeight))
+        dst = np.array(
+            [
+                [0, 0],
+                [maxWidth - 1, 0],
+                [maxWidth - 1, maxHeight - 1],
+                [0, maxHeight - 1]
+            ],
+            dtype="float32"
+        )
+
+
+        M = cv2.getPerspectiveTransform(
+            rect,
+            dst
+        )
+
+
+        warped = cv2.warpPerspective(
+            img_array,
+            M,
+            (
+                maxWidth,
+                maxHeight
+            )
+        )
+
+
         return Image.fromarray(warped)
+
+
     return image
 
 
 # =========================================================
-# SESSION STATE
+# SESSION STATE (PERSIS ASLI MILIK USER)
 # =========================================================
+
 if "halaman" not in st.session_state:
     st.session_state.halaman = "utama"
+
 if "daftar_foto" not in st.session_state:
     st.session_state.daftar_foto = []
 
-st.markdown(CUSTOM_THEME_CSS, unsafe_allow_html=True)
-
-
 # =========================================================
-# HALAMAN LANDING / LOGIN GOOGLE
+# HALAMAN LANDING / LOGIN GOOGLE (SAAS UI)
 # =========================================================
 if not st.user.is_logged_in:
     
@@ -672,7 +1583,7 @@ if not st.user.is_logged_in:
         """, unsafe_allow_html=True)
 
     with col_login:
-        st.write("") # Spacing vertikal
+        st.write("") 
         st.write("")
         st.markdown("""
         <div class="login-card fade-in">
@@ -685,7 +1596,6 @@ if not st.user.is_logged_in:
             <div class="login-desc">Masuk menggunakan akun Google Anda untuk menghubungkan ruang penyimpanan awan.</div>
         """, unsafe_allow_html=True)
 
-        # Tombol Login Google Asli (Styling dihandle oleh CSS global)
         st.login()
 
         st.markdown("""
@@ -699,7 +1609,7 @@ if not st.user.is_logged_in:
 
 
 # =========================================================
-# HALAMAN USER LOGIN & NAVBAR DASHBOARD
+# HALAMAN USER LOGIN & NAVBAR DASHBOARD (SAAS UI)
 # =========================================================
 nama_user = st.user.get("name", "Pengguna")
 email_user = st.user.get("email", "")
@@ -723,33 +1633,63 @@ with col_user:
 
 
 # =========================================================
-# CEK KONEKSI GOOGLE DRIVE
+# ACCESS TOKEN (PERSIS ASLI MILIK USER)
 # =========================================================
+
 try:
     access_token = st.user.tokens["access"]
 except Exception:
     access_token = None
 
 if not access_token:
-    st.error("Access token Google tidak tersedia. Pastikan expose_tokens = [\"access\"] sudah ada di secrets.toml.")
-    if st.button("Logout"): st.logout()
+    st.error(
+        "Access token Google tidak tersedia. "
+        "Pastikan expose_tokens = [\"access\"] "
+        "sudah ada di secrets.toml."
+    )
     st.stop()
+
+
+# =========================================================
+# GOOGLE DRIVE KONEKSI (PERSIS ASLI MILIK USER)
+# =========================================================
 
 try:
-    credentials = Credentials(token=access_token)
-    drive_service = build("drive", "v3", credentials=credentials, cache_discovery=False)
+    credentials = Credentials(
+        token=access_token
+    )
+    drive_service = build(
+        "drive",
+        "v3",
+        credentials=credentials,
+        cache_discovery=False
+    )
 except Exception as e:
-    st.error(f"Gagal menghubungkan ke Google Drive: {e}")
+    st.error(
+        f"Gagal menghubungkan ke Google Drive: {e}"
+    )
     st.stop()
 
 
 # =========================================================
-# HALAMAN SCANNER
+# HALAMAN SCANNER (LOGIKA BACKEND PERSIS ASLI MILIK USER)
 # =========================================================
+
 if st.session_state.halaman == "scanner":
-    # Spacer untuk layar penuh
-    st.markdown("<style>.block-container{padding-top: 0 !important; max-width: 800px !important;}</style>", unsafe_allow_html=True)
     
+    st.markdown(
+        """
+        <style>
+        .scanner-wrapper {
+            margin-top: -20px;
+        }
+        /* Menghilangkan padding agar komponen muat */
+        .block-container{padding-top: 0 !important; max-width: 800px !important;}
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
     hasil_scanner = camera_component(
         key="docuflow_camera",
         width="stretch",
@@ -758,9 +1698,17 @@ if st.session_state.halaman == "scanner":
         on_cancel_change=lambda: None
     )
 
-    # --- SCAN SELESAI ---
-    if hasattr(hasil_scanner, "done") and hasil_scanner.done:
+    # =====================================================
+    # SCAN SELESAI
+    # =====================================================
+
+    if (
+        hasattr(hasil_scanner, "done")
+        and hasil_scanner.done
+    ):
+
         foto_list = hasil_scanner.done
+
         if len(foto_list) == 0:
             st.warning("Belum ada foto yang diambil.")
         else:
@@ -769,20 +1717,26 @@ if st.session_state.halaman == "scanner":
                 for photo_data in foto_list:
                     image_data = photo_data.split(",", 1)[1]
                     image_bytes = base64.b64decode(image_data)
-                    img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+                    img = Image.open(
+                        io.BytesIO(image_bytes)
+                    ).convert("RGB")
                     
-                    # Logika Auto Crop Diaktifkan
-                    img_terpotong = potong_dokumen_otomatis(img)
-                    foto_baru.append(img_terpotong)
-
+                    foto_baru.append(img)
+                    
                 st.session_state.daftar_foto = foto_baru
                 st.session_state.halaman = "utama"
                 st.rerun()
+
             except Exception as e:
                 st.error(f"Gagal memproses hasil scan: {e}")
 
-    # --- SCAN DIBATALKAN ---
-    if hasattr(hasil_scanner, "cancel") and hasil_scanner.cancel:
+    # =====================================================
+    # SCAN DIBATALKAN
+    # =====================================================
+    if (
+        hasattr(hasil_scanner, "cancel")
+        and hasil_scanner.cancel
+    ):
         st.session_state.daftar_foto = []
         st.session_state.halaman = "utama"
         st.rerun()
@@ -791,7 +1745,7 @@ if st.session_state.halaman == "scanner":
 
 
 # =========================================================
-# HALAMAN UTAMA (DASHBOARD)
+# HALAMAN UTAMA / DASHBOARD (UI SAAS DITERAPKAN)
 # =========================================================
 
 # Membagi dashboard menjadi 2 kolom (Tools & Setup)
