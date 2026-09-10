@@ -278,6 +278,7 @@ st.info(f"Jumlah jepretan saat ini: {jumlah_sekarang} / 5")
 # ==========================================
 # 7. ANTARMUKA KAMERA
 # ==========================================
+
 if jumlah_sekarang < 5:
 
     st.markdown(
@@ -295,143 +296,52 @@ if jumlah_sekarang < 5:
     )
 
     # ==========================================
-    # PENYIMPAN FRAME TERAKHIR DARI KAMERA
+    # KAMERA CUSTOM
     # ==========================================
-    if "frame_queue" not in st.session_state:
-        st.session_state.frame_queue = queue.Queue(maxsize=1)
 
-    frame_queue = st.session_state.frame_queue
-
-    def video_frame_callback(frame: av.VideoFrame) -> av.VideoFrame:
-
-        image = frame.to_ndarray(format="bgr24")
-
-        # Simpan hanya frame terbaru
-        try:
-            if frame_queue.full():
-                frame_queue.get_nowait()
-
-            frame_queue.put_nowait(image.copy())
-
-        except queue.Empty:
-            pass
-
-        except queue.Full:
-            pass
-
-        # Tampilkan kamera seperti aslinya
-        return av.VideoFrame.from_ndarray(
-            image,
-            format="bgr24"
-        )
-
-    # ==========================================
-    # KAMERA
-    # ==========================================
-    webrtc_ctx = webrtc_streamer(
-        key=f"kamera_{st.session_state.kamera_key}",
-        mode=WebRtcMode.SENDRECV,
-
-        video_frame_callback=video_frame_callback,
-
-        media_stream_constraints={
-            "video": {
-                "facingMode": {
-                    "ideal": "environment"
-                }
-            },
-            "audio": False
-        },
-
-        rtc_configuration={
-            "iceServers": [
-                {
-                    "urls": [
-                        "stun:stun.l.google.com:19302"
-                    ]
-                }
-            ]
-        },
-
-        video_html_attrs={
-            "autoPlay": True,
-            "controls": False,
-            "muted": True,
-            "playsInline": True,
-            "style": {
-                "width": "100%",
-                "height": "70vh",
-                "min-height": "500px",
-                "object-fit": "cover",
-                "border-radius": "12px",
-                "display": "block"
-            }
-        },
-
-        media_toggle_controls=False
+    captured_photo = camera(
+        key=f"kamera_{st.session_state.kamera_key}"
     )
 
     # ==========================================
-    # TOMBOL JEPRET
+    # JIKA FOTO BERHASIL DIAMBIL
     # ==========================================
-    if webrtc_ctx.state.playing:
 
-        st.markdown(
-            """
-            <div style="
-                text-align:center;
-                margin-top:15px;
-                margin-bottom:10px;
-            ">
-                <span style="
-                    font-size:14px;
-                    color:#666;
-                ">
-                    Pastikan seluruh dokumen terlihat
-                </span>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+    if captured_photo is not None:
 
-        col1, col2, col3 = st.columns([1, 1, 1])
+        try:
 
-        with col2:
-            ambil_foto = st.button(
-                "📸 Ambil Foto",
-                use_container_width=True
+            # Hilangkan prefix base64
+            image_data = captured_photo.split(",", 1)[1]
+
+            # Decode gambar
+            image_bytes = base64.b64decode(image_data)
+
+            # Buka sebagai PIL Image
+            img = Image.open(
+                io.BytesIO(image_bytes)
+            ).convert("RGB")
+
+            # ==========================================
+            # SIMPAN KE DAFTAR FOTO
+            # ==========================================
+
+            st.session_state.daftar_foto.append(img)
+
+            # Ganti key kamera
+            st.session_state.kamera_key += 1
+
+            st.success(
+                f"✅ Halaman {len(st.session_state.daftar_foto)} berhasil diambil!"
             )
 
-        if ambil_foto:
+            st.rerun()
 
-            try:
-                foto = frame_queue.get_nowait()
+        except Exception as e:
 
-                # BGR → RGB
-                foto_rgb = cv2.cvtColor(
-                    foto,
-                    cv2.COLOR_BGR2RGB
-                )
-
-                # Masukkan ke daftar halaman
-                img = Image.fromarray(foto_rgb)
-
-                st.session_state.daftar_foto.append(img)
-
-                # Ganti key kamera agar siap untuk halaman berikutnya
-                st.session_state.kamera_key += 1
-
-                st.success(
-                    f"✅ Halaman {len(st.session_state.daftar_foto)} berhasil diambil!"
-                )
-
-                st.rerun()
-
-            except queue.Empty:
-
-                st.warning(
-                    "📷 Kamera belum siap. Tunggu sebentar lalu coba lagi."
-                )
+            st.error(
+                f"❌ Gagal mengambil foto: {e}"
+            )
 
 else:
 
