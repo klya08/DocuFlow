@@ -17,6 +17,7 @@ from googleapiclient.http import MediaIoBaseUpload
 st.set_page_config(page_title="DocuFlow", page_icon="📄", layout="centered")
 
 # Menggunakan CSS untuk membuat tampilan lebih clean
+# Menggunakan CSS untuk membuat tampilan lebih clean dan menyembunyikan elemen kamera bawaan
 st.markdown(
     """
     <style>
@@ -37,6 +38,25 @@ st.markdown(
         align-items: center;
         justify-content: center;
         width: 100%;
+    }
+
+    /* --------------------------------------------------- */
+    /* HACK CSS: MENGHILANGKAN DROPDOWN VIDEO INPUT WEBRTC */
+    /* --------------------------------------------------- */
+    
+    /* Menyembunyikan label "Video Input" */
+    label[data-testid="stWidgetLabel"] {
+        display: none !important;
+    }
+    
+    /* Menyembunyikan kotak dropdown pemilih kamera (Selectbox) */
+    div[data-baseweb="select"] {
+        display: none !important;
+    }
+
+    /* Memastikan tombol DONE tetap terlihat (jika diperlukan) tapi menyembunyikan kontainernya jika kosong */
+    div.stSelectbox {
+        display: none !important;
     }
     </style>
     """,
