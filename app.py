@@ -1703,7 +1703,6 @@ else:
 
         st.rerun()
 
-
 # =========================================================
 # PREVIEW
 # =========================================================
@@ -1714,53 +1713,31 @@ if len(st.session_state.daftar_foto) > 0:
         "### Preview Hasil Scan"
     )
 
-
     cols = st.columns(
         len(st.session_state.daftar_foto)
     )
-
 
     for i, foto in enumerate(
         st.session_state.daftar_foto
     ):
 
+        with cols[i]:
 
-cols = st.columns(
-    len(st.session_state.daftar_foto)
-)
+            st.image(
+                foto,
+                caption=f"Halaman {i + 1}",
+                width=300
+            )
 
-for i, foto in enumerate(
-    st.session_state.daftar_foto
-):
+            if st.button(
+                "❌ Hapus",
+                key=f"hapus_halaman_{i}",
+                use_container_width=True
+            ):
 
-    with cols[i]:
+                st.session_state.daftar_foto.pop(i)
 
-        st.image(
-            foto,
-            caption=f"Halaman {i + 1}",
-            width=300
-        )
-
-        if st.button(
-            "❌ Hapus",
-            key=f"hapus_halaman_{i}",
-            use_container_width=True
-        ):
-
-            st.session_state.daftar_foto.pop(i)
-
-            st.rerun()
-        
-        if cols[i].button(
-            "❌ Hapus",
-            key=f"hapus_halaman_{i}",
-            use_container_width=True
-        ):
-
-            st.session_state.daftar_foto.pop(i)
-
-            st.rerun()
-
+                st.rerun()
 
 # =========================================================
 # NAMA FILE
