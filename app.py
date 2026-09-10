@@ -296,7 +296,6 @@ if jumlah_sekarang < 5:
         key=f"kamera_{st.session_state.kamera_key}",
         mode=WebRtcMode.SENDRECV,
 
-        # PRIORITASKAN KAMERA BELAKANG
         media_stream_constraints={
             "video": {
                 "facingMode": {
@@ -306,7 +305,6 @@ if jumlah_sekarang < 5:
             "audio": False
         },
 
-        # KONFIGURASI KONEKSI WEBRTC
         rtc_configuration={
             "iceServers": [
                 {
@@ -317,7 +315,6 @@ if jumlah_sekarang < 5:
             ]
         },
 
-        # TAMPILAN VIDEO
         video_html_attrs={
             "autoPlay": True,
             "controls": False,
@@ -333,12 +330,10 @@ if jumlah_sekarang < 5:
             }
         },
 
-        # SEMBUNYIKAN KONTROL PILIH KAMERA/MIC
         media_toggle_controls=False
     )
 
 else:
-
     st.warning(
         "Batas maksimal 5 foto per dokumen sudah tercapai!"
     )
