@@ -1816,7 +1816,7 @@ if len(st.session_state.daftar_foto) > 0:
             st.image(
                 foto,
                 caption=f"Halaman {i + 1}",
-                width=110
+                use_container_width=True
             )
 
             if st.button(
