@@ -1750,8 +1750,15 @@ if len(st.session_state.daftar_foto) > 0:
 
     st.write("### Preview Hasil Scan")
 
-    # Maksimal 5 thumbnail berjajar
-    cols = st.columns(5)
+    # Maksimal 5 thumbnail tetap berjajar ke samping
+    cols = st.columns(
+        5,
+        gap="small",
+        vertical_alignment="top",
+        border=False,
+        width="stretch",
+        wrap=False
+    )
 
     for i, foto in enumerate(
         st.session_state.daftar_foto
@@ -1761,8 +1768,8 @@ if len(st.session_state.daftar_foto) > 0:
 
             st.image(
                 foto,
-                caption=f"{i + 1}",
-                width=90
+                caption=f"Halaman {i + 1}",
+                width=110
             )
 
             if st.button(
