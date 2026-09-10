@@ -196,13 +196,9 @@ CAMERA_CSS = """
 
 .camera-area {
     position: relative;
-
     width: 100%;
-
     height: 530px;
-
     background: #000;
-
     overflow: hidden;
 }
 
@@ -310,12 +306,10 @@ CAMERA_CSS = """
 
 
 /* BOTTOM */
-
 .bottom-panel {
-
     background: #171717;
-
-    padding: 10px 12px 16px;
+    padding: 0 12px 12px;
+    margin-top: 0;
 }
 
 
@@ -586,18 +580,29 @@ CAMERA_CSS = """
 @media (max-width: 600px) {
 
     .scanner-app {
-
         border-radius: 0;
-
         min-height: 100vh;
     }
 
     .camera-area {
-
-        height: calc(100vh - 220px);
-
-        min-height: 430px;
+        height: calc(100vh - 200px);
+        min-height: 400px;
     }
+
+    .bottom-panel {
+        padding: 0 12px 12px;
+    }
+
+    .thumbnail-container {
+        min-height: 0;
+        padding: 0;
+    }
+
+    .camera-controls {
+        padding: 8px 4px 0;
+    }
+
+}
 
     .document-guide {
 
