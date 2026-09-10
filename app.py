@@ -1,5 +1,7 @@
 import io
 import re
+import queue
+import av
 import cv2
 import numpy as np
 import streamlit as st
@@ -292,9 +294,45 @@ if jumlah_sekarang < 5:
         unsafe_allow_html=True
     )
 
+    # ==========================================
+    # PENYIMPAN FRAME TERAKHIR DARI KAMERA
+    # ==========================================
+    if "frame_queue" not in st.session_state:
+        st.session_state.frame_queue = queue.Queue(maxsize=1)
+
+    frame_queue = st.session_state.frame_queue
+
+    def video_frame_callback(frame: av.VideoFrame) -> av.VideoFrame:
+
+        image = frame.to_ndarray(format="bgr24")
+
+        # Simpan hanya frame terbaru
+        try:
+            if frame_queue.full():
+                frame_queue.get_nowait()
+
+            frame_queue.put_nowait(image.copy())
+
+        except queue.Empty:
+            pass
+
+        except queue.Full:
+            pass
+
+        # Tampilkan kamera seperti aslinya
+        return av.VideoFrame.from_ndarray(
+            image,
+            format="bgr24"
+        )
+
+    # ==========================================
+    # KAMERA
+    # ==========================================
     webrtc_ctx = webrtc_streamer(
         key=f"kamera_{st.session_state.kamera_key}",
         mode=WebRtcMode.SENDRECV,
+
+        video_frame_callback=video_frame_callback,
 
         media_stream_constraints={
             "video": {
@@ -333,7 +371,70 @@ if jumlah_sekarang < 5:
         media_toggle_controls=False
     )
 
+    # ==========================================
+    # TOMBOL JEPRET
+    # ==========================================
+    if webrtc_ctx.state.playing:
+
+        st.markdown(
+            """
+            <div style="
+                text-align:center;
+                margin-top:15px;
+                margin-bottom:10px;
+            ">
+                <span style="
+                    font-size:14px;
+                    color:#666;
+                ">
+                    Pastikan seluruh dokumen terlihat
+                </span>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+        col1, col2, col3 = st.columns([1, 1, 1])
+
+        with col2:
+            ambil_foto = st.button(
+                "📸 Ambil Foto",
+                use_container_width=True
+            )
+
+        if ambil_foto:
+
+            try:
+                foto = frame_queue.get_nowait()
+
+                # BGR → RGB
+                foto_rgb = cv2.cvtColor(
+                    foto,
+                    cv2.COLOR_BGR2RGB
+                )
+
+                # Masukkan ke daftar halaman
+                img = Image.fromarray(foto_rgb)
+
+                st.session_state.daftar_foto.append(img)
+
+                # Ganti key kamera agar siap untuk halaman berikutnya
+                st.session_state.kamera_key += 1
+
+                st.success(
+                    f"✅ Halaman {len(st.session_state.daftar_foto)} berhasil diambil!"
+                )
+
+                st.rerun()
+
+            except queue.Empty:
+
+                st.warning(
+                    "📷 Kamera belum siap. Tunggu sebentar lalu coba lagi."
+                )
+
 else:
+
     st.warning(
         "Batas maksimal 5 foto per dokumen sudah tercapai!"
     )
