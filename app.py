@@ -756,28 +756,68 @@ export default function(component) {
             }
 
 
-            stream =
-                await navigator.mediaDevices.getUserMedia({
+stream =
+    await navigator.mediaDevices.getUserMedia({
 
-                    video: {
+        video: {
 
-                        facingMode: {
-                            ideal: "environment"
-                        },
+            facingMode: {
+                ideal: "environment"
+            },
 
-                        width: {
-                            ideal: 1920
-                        },
+            width: {
+                ideal: 2560
+            },
 
-                        height: {
-                            ideal: 1080
-                        }
+            height: {
+                ideal: 1440
+            },
 
-                    },
+            aspectRatio: {
+                ideal: 16 / 9
+            }
+        },
 
-                    audio: false
-                });
+        audio: false
+    });
 
+
+// =========================================
+// AKTIFKAN AUTOFOCUS KAMERA
+// =========================================
+
+const videoTrack =
+    stream.getVideoTracks()[0];
+
+if (videoTrack) {
+
+    const capabilities =
+        videoTrack.getCapabilities();
+
+    if (
+        capabilities.focusMode &&
+        capabilities.focusMode.includes("continuous")
+    ) {
+
+        try {
+
+            await videoTrack.applyConstraints({
+                advanced: [
+                    {
+                        focusMode: "continuous"
+                    }
+                ]
+            });
+
+        } catch (focusError) {
+
+            console.log(
+                "Autofocus continuous tidak tersedia:",
+                focusError
+            );
+        }
+    }
+}
 
             video.srcObject = stream;
 
