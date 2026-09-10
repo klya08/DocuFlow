@@ -823,6 +823,13 @@ if (videoTrack) {
 
             await video.play();
 
+            console.log(
+                "RESOLUSI KAMERA:",
+                video.videoWidth,
+                "x",
+                video.videoHeight
+            );
+
 
             startOverlay.style.display =
                 "none";
