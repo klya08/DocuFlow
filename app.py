@@ -332,8 +332,6 @@ if jumlah_sekarang < 5:
         key=f"kamera_{st.session_state.kamera_key}",
         mode=WebRtcMode.SENDRECV,
         
-        # Opsi ini memaksa kamera menyala otomatis tanpa harus klik tombol Start
-        desired_playing_state=True,
 
         video_frame_callback=video_frame_callback,
 
