@@ -813,90 +813,140 @@ export default function(component) {
     /* =========================================
        CAPTURE PHOTO
     ========================================= */
+function capturePhoto() {
 
-    function capturePhoto() {
-
-        if (!stream) {
-            return;
-        }
+    if (!stream) {
+        return;
+    }
 
 
-        if (photos.length >= 5) {
+    if (photos.length >= 5) {
 
-            cameraMessage.textContent =
-                "Maksimal 5 halaman.";
+        cameraMessage.textContent =
+            "Maksimal 5 halaman.";
+
+        cameraMessage.style.display =
+            "block";
+
+        setTimeout(() => {
 
             cameraMessage.style.display =
-                "block";
+                "none";
 
-            setTimeout(() => {
+        }, 1500);
 
-                cameraMessage.style.display =
-                    "none";
-
-            }, 1500);
-
-            return;
-        }
+        return;
+    }
 
 
-        if (
-            video.videoWidth === 0 ||
-            video.videoHeight === 0
-        ) {
+    if (
+        video.videoWidth === 0 ||
+        video.videoHeight === 0
+    ) {
 
-            return;
-        }
-
-
-        const canvas =
-            document.createElement("canvas");
+        return;
+    }
 
 
-        canvas.width =
-            video.videoWidth;
+    // =========================================
+    // SESUAIKAN HASIL FOTO DENGAN AREA PREVIEW
+    // =========================================
 
-        canvas.height =
-            video.videoHeight;
+    const videoWidth =
+        video.videoWidth;
+
+    const videoHeight =
+        video.videoHeight;
 
 
-        const context =
-            canvas.getContext("2d");
+    const displayWidth =
+        video.clientWidth;
+
+    const displayHeight =
+        video.clientHeight;
 
 
-        context.drawImage(
-            video,
-            0,
-            0,
-            canvas.width,
-            canvas.height
+    // object-fit: cover
+    const scale =
+        Math.max(
+            displayWidth / videoWidth,
+            displayHeight / videoHeight
         );
 
 
-        const image =
-            canvas.toDataURL(
-                "image/jpeg",
-                0.92
-            );
+    // Ukuran gambar asli yang terlihat
+    // di dalam preview
+    const sourceWidth =
+        displayWidth / scale;
+
+    const sourceHeight =
+        displayHeight / scale;
 
 
-        photos.push(image);
+    // Posisi crop di gambar asli
+    const sourceX =
+        (videoWidth - sourceWidth) / 2;
+
+    const sourceY =
+        (videoHeight - sourceHeight) / 2;
 
 
-        renderThumbnails();
+    const canvas =
+        document.createElement("canvas");
 
-        updateCounter();
+
+    canvas.width =
+        Math.round(sourceWidth);
+
+    canvas.height =
+        Math.round(sourceHeight);
 
 
-        if (photos.length >= 5) {
+    const context =
+        canvas.getContext("2d");
 
-            cameraMessage.textContent =
-                "Maksimal 5 halaman tercapai.";
 
-            cameraMessage.style.display =
-                "block";
-        }
+    context.drawImage(
+        video,
+
+        sourceX,
+        sourceY,
+
+        sourceWidth,
+        sourceHeight,
+
+        0,
+        0,
+
+        canvas.width,
+        canvas.height
+    );
+
+
+    const image =
+        canvas.toDataURL(
+            "image/jpeg",
+            0.92
+        );
+
+
+    photos.push(image);
+
+
+    renderThumbnails();
+
+    updateCounter();
+
+
+    if (photos.length >= 5) {
+
+        cameraMessage.textContent =
+            "Maksimal 5 halaman tercapai.";
+
+        cameraMessage.style.display =
+            "block";
     }
+}
 
 
     /* =========================================
