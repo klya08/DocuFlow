@@ -819,7 +819,6 @@ function capturePhoto() {
         return;
     }
 
-
     if (photos.length >= 5) {
 
         cameraMessage.textContent =
@@ -838,15 +837,154 @@ function capturePhoto() {
         return;
     }
 
-
     if (
         video.videoWidth === 0 ||
         video.videoHeight === 0
     ) {
-
         return;
     }
 
+
+    // =========================================
+    // UKURAN ASLI KAMERA
+    // =========================================
+
+    const videoWidth =
+        video.videoWidth;
+
+    const videoHeight =
+        video.videoHeight;
+
+
+    // =========================================
+    // UKURAN AREA PREVIEW
+    // =========================================
+
+    const displayWidth =
+        video.clientWidth;
+
+    const displayHeight =
+        video.clientHeight;
+
+
+    // =========================================
+    // HITUNG OBJECT-FIT: COVER
+    // =========================================
+
+    const videoRatio =
+        videoWidth / videoHeight;
+
+    const displayRatio =
+        displayWidth / displayHeight;
+
+
+    let sourceX = 0;
+    let sourceY = 0;
+
+    let sourceWidth =
+        videoWidth;
+
+    let sourceHeight =
+        videoHeight;
+
+
+    if (videoRatio > displayRatio) {
+
+        // Kamera lebih lebar
+        // sisi kiri-kanan dipotong
+
+        sourceWidth =
+            videoHeight * displayRatio;
+
+        sourceX =
+            (videoWidth - sourceWidth) / 2;
+
+    } else {
+
+        // Kamera lebih tinggi
+        // sisi atas-bawah dipotong
+
+        sourceHeight =
+            videoWidth / displayRatio;
+
+        sourceY =
+            (videoHeight - sourceHeight) / 2;
+    }
+
+
+    // =========================================
+    // CANVAS MENGGUNAKAN RESOLUSI ASLI
+    // =========================================
+
+    const canvas =
+        document.createElement("canvas");
+
+
+    canvas.width =
+        Math.round(sourceWidth);
+
+    canvas.height =
+        Math.round(sourceHeight);
+
+
+    const context =
+        canvas.getContext("2d");
+
+
+    context.imageSmoothingEnabled =
+        true;
+
+    context.imageSmoothingQuality =
+        "high";
+
+
+    context.drawImage(
+
+        video,
+
+        sourceX,
+        sourceY,
+
+        sourceWidth,
+        sourceHeight,
+
+        0,
+        0,
+
+        canvas.width,
+        canvas.height
+    );
+
+
+    // =========================================
+    // SIMPAN KUALITAS TINGGI
+    // =========================================
+
+    const image =
+        canvas.toDataURL(
+            "image/jpeg",
+            0.95
+        );
+
+
+    photos.push(image);
+
+
+    renderThumbnails();
+
+    updateCounter();
+
+
+    if (photos.length >= 5) {
+
+        cameraMessage.textContent =
+            "Maksimal 5 halaman tercapai.";
+
+        cameraMessage.style.display =
+            "block";
+    }
+}
+    
 
     // =========================================
     // SESUAIKAN HASIL FOTO DENGAN AREA PREVIEW
@@ -1709,13 +1847,10 @@ else:
 
 if len(st.session_state.daftar_foto) > 0:
 
-    st.write(
-        "### Preview Hasil Scan"
-    )
+    st.write("### Preview Hasil Scan")
 
-    cols = st.columns(
-        len(st.session_state.daftar_foto)
-    )
+    # Maksimal 5 thumbnail berjajar
+    cols = st.columns(5)
 
     for i, foto in enumerate(
         st.session_state.daftar_foto
@@ -1725,12 +1860,12 @@ if len(st.session_state.daftar_foto) > 0:
 
             st.image(
                 foto,
-                caption=f"Halaman {i + 1}",
-                width=300
+                caption=f"{i + 1}",
+                width=90
             )
 
             if st.button(
-                "❌ Hapus",
+                "❌",
                 key=f"hapus_halaman_{i}",
                 use_container_width=True
             ):
