@@ -59,15 +59,6 @@ CAMERA_HTML = """
         <div class="dark-top"></div>
         <div class="dark-bottom"></div>
 
-        <div class="document-guide">
-
-            <div class="corner top-left"></div>
-            <div class="corner top-right"></div>
-            <div class="corner bottom-left"></div>
-            <div class="corner bottom-right"></div>
-
-        </div>
-
         <div id="cameraMessage" class="camera-message">
             Tekan tombol kamera untuk memulai
         </div>
