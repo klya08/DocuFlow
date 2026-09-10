@@ -8,18 +8,1011 @@ import streamlit as st
 
 from PIL import Image
 
-from camera_component import camera
-
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload
 
 
-# ==========================================
+# =========================================================
+# KONFIGURASI HALAMAN
+# =========================================================
+
+st.set_page_config(
+    page_title="DocuFlow",
+    page_icon="📄",
+    layout="centered"
+)
+
+
+# =========================================================
+# CUSTOM CAMERA - STREAMLIT COMPONENT V2
+# =========================================================
+
+CAMERA_HTML = """
+<div class="scanner-app">
+
+    <div class="scanner-header">
+        <button id="backButton" class="icon-button">
+            ←
+        </button>
+
+        <div class="header-title">
+            <div class="title">Scan Dokumen</div>
+            <div id="pageCounter" class="counter">
+                0 / 5 halaman
+            </div>
+        </div>
+
+        <div class="header-spacer"></div>
+    </div>
+
+
+    <div id="cameraArea" class="camera-area">
+
+        <video
+            id="camera"
+            autoplay
+            playsinline
+            muted
+        ></video>
+
+        <div class="dark-top"></div>
+        <div class="dark-bottom"></div>
+
+        <div class="document-guide">
+
+            <div class="corner top-left"></div>
+            <div class="corner top-right"></div>
+            <div class="corner bottom-left"></div>
+            <div class="corner bottom-right"></div>
+
+        </div>
+
+        <div id="cameraMessage" class="camera-message">
+            Tekan tombol kamera untuk memulai
+        </div>
+
+    </div>
+
+
+    <div class="bottom-panel">
+
+        <div id="thumbnailContainer" class="thumbnail-container">
+        </div>
+
+        <div class="camera-controls">
+
+            <button id="cancelButton" class="secondary-button">
+                Batal
+            </button>
+
+            <button id="captureButton" class="capture-button">
+                <span></span>
+            </button>
+
+            <button id="doneButton" class="ok-button">
+                OK
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <div id="startOverlay" class="start-overlay">
+
+        <div class="camera-icon">
+            📷
+        </div>
+
+        <div class="start-title">
+            Siap untuk scan?
+        </div>
+
+        <div class="start-description">
+            Kamera belakang akan digunakan secara otomatis.
+        </div>
+
+        <button id="startButton" class="start-button">
+            Mulai Kamera
+        </button>
+
+    </div>
+
+</div>
+"""
+
+
+CAMERA_CSS = """
+
+* {
+    box-sizing: border-box;
+}
+
+.scanner-app {
+    width: 100%;
+    min-height: 720px;
+    background: #111;
+    color: white;
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+}
+
+
+/* HEADER */
+
+.scanner-header {
+    height: 64px;
+    background: #171717;
+
+    display: flex;
+    align-items: center;
+
+    padding: 8px 12px;
+
+    position: relative;
+    z-index: 20;
+}
+
+.icon-button {
+    width: 44px;
+    height: 44px;
+
+    border: none;
+    background: transparent;
+
+    color: white;
+
+    font-size: 30px;
+
+    cursor: pointer;
+
+    border-radius: 50%;
+}
+
+.icon-button:active {
+    background: rgba(255,255,255,0.15);
+}
+
+.header-title {
+    flex: 1;
+    text-align: center;
+}
+
+.title {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.counter {
+    font-size: 12px;
+    color: #aaa;
+    margin-top: 2px;
+}
+
+.header-spacer {
+    width: 44px;
+}
+
+
+/* CAMERA */
+
+.camera-area {
+    position: relative;
+
+    width: 100%;
+
+    height: 530px;
+
+    background: #000;
+
+    overflow: hidden;
+}
+
+#camera {
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+    display: block;
+
+    background: #000;
+}
+
+
+/* GUIDE */
+
+.document-guide {
+
+    position: absolute;
+
+    left: 7%;
+    right: 7%;
+
+    top: 12%;
+    bottom: 12%;
+
+    border: 2px solid rgba(255,255,255,0.85);
+
+    border-radius: 8px;
+
+    pointer-events: none;
+
+    box-shadow:
+        0 0 0 9999px rgba(0,0,0,0.18);
+}
+
+
+/* CORNERS */
+
+.corner {
+    position: absolute;
+
+    width: 32px;
+    height: 32px;
+
+    border-color: white;
+    border-style: solid;
+}
+
+.top-left {
+    left: -2px;
+    top: -2px;
+
+    border-width: 4px 0 0 4px;
+}
+
+.top-right {
+    right: -2px;
+    top: -2px;
+
+    border-width: 4px 4px 0 0;
+}
+
+.bottom-left {
+    left: -2px;
+    bottom: -2px;
+
+    border-width: 0 0 4px 4px;
+}
+
+.bottom-right {
+    right: -2px;
+    bottom: -2px;
+
+    border-width: 0 4px 4px 0;
+}
+
+
+/* MESSAGE */
+
+.camera-message {
+
+    position: absolute;
+
+    left: 50%;
+    top: 50%;
+
+    transform: translate(-50%, -50%);
+
+    background: rgba(0,0,0,0.55);
+
+    padding: 10px 16px;
+
+    border-radius: 20px;
+
+    font-size: 14px;
+
+    color: white;
+
+    text-align: center;
+
+    pointer-events: none;
+}
+
+
+/* BOTTOM */
+
+.bottom-panel {
+
+    background: #171717;
+
+    padding: 10px 12px 16px;
+}
+
+
+/* THUMBNAILS */
+
+.thumbnail-container {
+
+    min-height: 84px;
+
+    display: flex;
+
+    gap: 8px;
+
+    overflow-x: auto;
+
+    padding: 4px 0 10px;
+}
+
+.thumbnail {
+
+    position: relative;
+
+    width: 58px;
+    height: 72px;
+
+    flex-shrink: 0;
+
+    border-radius: 7px;
+
+    overflow: hidden;
+
+    border: 2px solid #555;
+
+    background: #333;
+}
+
+.thumbnail img {
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+}
+
+.thumbnail-number {
+
+    position: absolute;
+
+    left: 4px;
+    top: 4px;
+
+    background: rgba(0,0,0,0.7);
+
+    color: white;
+
+    width: 20px;
+    height: 20px;
+
+    border-radius: 50%;
+
+    font-size: 11px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+}
+
+.thumbnail-delete {
+
+    position: absolute;
+
+    right: 3px;
+    top: 3px;
+
+    width: 20px;
+    height: 20px;
+
+    border: none;
+
+    border-radius: 50%;
+
+    background: rgba(0,0,0,0.7);
+
+    color: white;
+
+    cursor: pointer;
+
+    font-size: 12px;
+
+    padding: 0;
+}
+
+
+/* CONTROLS */
+
+.camera-controls {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    padding: 4px 4px 0;
+}
+
+.secondary-button,
+.ok-button {
+
+    border: none;
+
+    border-radius: 12px;
+
+    height: 44px;
+
+    padding: 0 20px;
+
+    font-size: 15px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+.secondary-button {
+
+    background: #2c2c2c;
+
+    color: white;
+}
+
+.ok-button {
+
+    background: #ffffff;
+
+    color: #111;
+}
+
+.ok-button:disabled {
+
+    opacity: 0.35;
+
+    cursor: not-allowed;
+}
+
+
+/* SHUTTER */
+
+.capture-button {
+
+    width: 72px;
+    height: 72px;
+
+    border-radius: 50%;
+
+    border: 5px solid white;
+
+    background: transparent;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    cursor: pointer;
+
+    padding: 0;
+}
+
+.capture-button span {
+
+    width: 56px;
+    height: 56px;
+
+    background: white;
+
+    border-radius: 50%;
+
+    display: block;
+
+    transition: transform 0.1s;
+}
+
+.capture-button:active span {
+
+    transform: scale(0.85);
+}
+
+
+/* START OVERLAY */
+
+.start-overlay {
+
+    position: absolute;
+
+    inset: 64px 0 0 0;
+
+    background: rgba(15,15,15,0.97);
+
+    z-index: 30;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    text-align: center;
+
+    padding: 30px;
+}
+
+.camera-icon {
+
+    font-size: 64px;
+
+    margin-bottom: 20px;
+}
+
+.start-title {
+
+    font-size: 24px;
+
+    font-weight: 700;
+
+    margin-bottom: 8px;
+}
+
+.start-description {
+
+    color: #aaa;
+
+    font-size: 14px;
+
+    line-height: 1.5;
+
+    max-width: 300px;
+
+    margin-bottom: 24px;
+}
+
+.start-button {
+
+    border: none;
+
+    background: white;
+
+    color: #111;
+
+    font-size: 16px;
+
+    font-weight: 700;
+
+    padding: 14px 28px;
+
+    border-radius: 14px;
+
+    cursor: pointer;
+}
+
+
+/* MOBILE */
+
+@media (max-width: 600px) {
+
+    .scanner-app {
+
+        border-radius: 0;
+
+        min-height: 100vh;
+    }
+
+    .camera-area {
+
+        height: calc(100vh - 220px);
+
+        min-height: 430px;
+    }
+
+    .document-guide {
+
+        left: 5%;
+        right: 5%;
+
+        top: 10%;
+        bottom: 10%;
+    }
+
+}
+"""
+
+
+CAMERA_JS = """
+
+export default function(component) {
+
+    const {
+        parentElement,
+        setTriggerValue
+    } = component;
+
+
+    const video =
+        parentElement.querySelector("#camera");
+
+    const startButton =
+        parentElement.querySelector("#startButton");
+
+    const captureButton =
+        parentElement.querySelector("#captureButton");
+
+    const cancelButton =
+        parentElement.querySelector("#cancelButton");
+
+    const doneButton =
+        parentElement.querySelector("#doneButton");
+
+    const startOverlay =
+        parentElement.querySelector("#startOverlay");
+
+    const cameraMessage =
+        parentElement.querySelector("#cameraMessage");
+
+    const thumbnailContainer =
+        parentElement.querySelector("#thumbnailContainer");
+
+    const pageCounter =
+        parentElement.querySelector("#pageCounter");
+
+
+    let stream = null;
+
+    let photos = [];
+
+
+    /* =========================================
+       UPDATE COUNTER
+    ========================================= */
+
+    function updateCounter() {
+
+        pageCounter.textContent =
+            photos.length + " / 5 halaman";
+
+        doneButton.disabled =
+            photos.length === 0;
+    }
+
+
+    /* =========================================
+       RENDER THUMBNAILS
+    ========================================= */
+
+    function renderThumbnails() {
+
+        thumbnailContainer.innerHTML = "";
+
+        photos.forEach((photo, index) => {
+
+            const wrapper =
+                document.createElement("div");
+
+            wrapper.className = "thumbnail";
+
+
+            const image =
+                document.createElement("img");
+
+            image.src = photo;
+
+
+            const number =
+                document.createElement("div");
+
+            number.className =
+                "thumbnail-number";
+
+            number.textContent =
+                index + 1;
+
+
+            const deleteButton =
+                document.createElement("button");
+
+            deleteButton.className =
+                "thumbnail-delete";
+
+            deleteButton.textContent =
+                "×";
+
+
+            deleteButton.onclick = () => {
+
+                photos.splice(index, 1);
+
+                renderThumbnails();
+
+                updateCounter();
+            };
+
+
+            wrapper.appendChild(image);
+
+            wrapper.appendChild(number);
+
+            wrapper.appendChild(deleteButton);
+
+            thumbnailContainer.appendChild(wrapper);
+
+        });
+    }
+
+
+    /* =========================================
+       START CAMERA
+    ========================================= */
+
+    async function startCamera() {
+
+        try {
+
+            if (
+                !navigator.mediaDevices ||
+                !navigator.mediaDevices.getUserMedia
+            ) {
+
+                throw new Error(
+                    "Browser tidak mendukung akses kamera."
+                );
+            }
+
+
+            stream =
+                await navigator.mediaDevices.getUserMedia({
+
+                    video: {
+
+                        facingMode: {
+                            ideal: "environment"
+                        },
+
+                        width: {
+                            ideal: 1920
+                        },
+
+                        height: {
+                            ideal: 1080
+                        }
+
+                    },
+
+                    audio: false
+                });
+
+
+            video.srcObject = stream;
+
+            await video.play();
+
+
+            startOverlay.style.display =
+                "none";
+
+            cameraMessage.style.display =
+                "none";
+
+            captureButton.disabled =
+                false;
+
+        }
+
+        catch (error) {
+
+            cameraMessage.textContent =
+                "Kamera tidak dapat dibuka: "
+                + error.message;
+
+            cameraMessage.style.display =
+                "block";
+
+            console.error(error);
+        }
+    }
+
+
+    /* =========================================
+       CAPTURE PHOTO
+    ========================================= */
+
+    function capturePhoto() {
+
+        if (!stream) {
+            return;
+        }
+
+
+        if (photos.length >= 5) {
+
+            cameraMessage.textContent =
+                "Maksimal 5 halaman.";
+
+            cameraMessage.style.display =
+                "block";
+
+            setTimeout(() => {
+
+                cameraMessage.style.display =
+                    "none";
+
+            }, 1500);
+
+            return;
+        }
+
+
+        if (
+            video.videoWidth === 0 ||
+            video.videoHeight === 0
+        ) {
+
+            return;
+        }
+
+
+        const canvas =
+            document.createElement("canvas");
+
+
+        canvas.width =
+            video.videoWidth;
+
+        canvas.height =
+            video.videoHeight;
+
+
+        const context =
+            canvas.getContext("2d");
+
+
+        context.drawImage(
+            video,
+            0,
+            0,
+            canvas.width,
+            canvas.height
+        );
+
+
+        const image =
+            canvas.toDataURL(
+                "image/jpeg",
+                0.92
+            );
+
+
+        photos.push(image);
+
+
+        renderThumbnails();
+
+        updateCounter();
+
+
+        if (photos.length >= 5) {
+
+            cameraMessage.textContent =
+                "Maksimal 5 halaman tercapai.";
+
+            cameraMessage.style.display =
+                "block";
+        }
+    }
+
+
+    /* =========================================
+       CANCEL
+    ========================================= */
+
+    function cancelScan() {
+
+        stopCamera();
+
+        setTriggerValue(
+            "cancel",
+            true
+        );
+    }
+
+
+    /* =========================================
+       DONE
+    ========================================= */
+
+    function finishScan() {
+
+        if (photos.length === 0) {
+
+            return;
+        }
+
+
+        stopCamera();
+
+
+        setTriggerValue(
+            "done",
+            photos
+        );
+    }
+
+
+    /* =========================================
+       STOP CAMERA
+    ========================================= */
+
+    function stopCamera() {
+
+        if (stream) {
+
+            stream
+                .getTracks()
+                .forEach(
+                    track => track.stop()
+                );
+
+            stream = null;
+        }
+
+        video.srcObject = null;
+    }
+
+
+    /* =========================================
+       EVENTS
+    ========================================= */
+
+    startButton.onclick =
+        startCamera;
+
+
+    captureButton.onclick =
+        capturePhoto;
+
+
+    cancelButton.onclick =
+        cancelScan;
+
+
+    doneButton.onclick =
+        finishScan;
+
+
+    /* =========================================
+       INITIAL
+    ========================================= */
+
+    updateCounter();
+
+
+    /* =========================================
+       CLEANUP
+    ========================================= */
+
+    return () => {
+
+        stopCamera();
+    };
+}
+"""
+
+
+camera_component = st.components.v2.component(
+    name="docuflow_camera",
+    html=CAMERA_HTML,
+    css=CAMERA_CSS,
+    js=CAMERA_JS
+)
+
+
+# =========================================================
 # FUNGSI GOOGLE DRIVE - FOLDER
-# ==========================================
+# =========================================================
+
 def get_drive_folders(drive_service):
-    """Mengambil daftar folder dari Google Drive user."""
 
     results = drive_service.files().list(
         q="mimeType='application/vnd.google-apps.folder' and trashed=false",
@@ -36,7 +1029,6 @@ def create_drive_folder(
     folder_name,
     parent_id=None
 ):
-    """Membuat folder baru di Google Drive."""
 
     folder_metadata = {
         "name": folder_name,
@@ -44,7 +1036,10 @@ def create_drive_folder(
     }
 
     if parent_id and parent_id != "root":
-        folder_metadata["parents"] = [parent_id]
+
+        folder_metadata["parents"] = [
+            parent_id
+        ]
 
     folder = drive_service.files().create(
         body=folder_metadata,
@@ -54,9 +1049,10 @@ def create_drive_folder(
     return folder
 
 
-# ==========================================
+# =========================================================
 # FUNGSI PEMOTONG OTOMATIS
-# ==========================================
+# =========================================================
+
 def potong_dokumen_otomatis(image):
 
     img_array = np.array(image)
@@ -108,7 +1104,9 @@ def potong_dokumen_otomatis(image):
         if len(approx) == 4:
 
             dokumen_contour = approx
+
             break
+
 
     if dokumen_contour is not None:
 
@@ -135,7 +1133,8 @@ def potong_dokumen_otomatis(image):
         rect[1] = pts[np.argmin(diff)]
         rect[3] = pts[np.argmax(diff)]
 
-        (tl, tr, br, bl) = rect
+        tl, tr, br, bl = rect
+
 
         widthA = np.sqrt(
             ((br[0] - bl[0]) ** 2)
@@ -154,6 +1153,7 @@ def potong_dokumen_otomatis(image):
             int(widthB)
         )
 
+
         heightA = np.sqrt(
             ((tr[0] - br[0]) ** 2)
             +
@@ -163,24 +1163,19 @@ def potong_dokumen_otomatis(image):
         heightB = np.sqrt(
             ((tl[0] - bl[0]) ** 2)
             +
-            ((tl[1] - tl[1]) ** 2)
+            ((tl[1] - bl[1]) ** 2)
         )
-
-        # Pengaman jika tinggi gagal dihitung
-        if heightB <= 0:
-            heightB = np.sqrt(
-                ((tl[0] - bl[0]) ** 2)
-                +
-                ((tl[1] - bl[1]) ** 2)
-            )
 
         maxHeight = max(
             int(heightA),
             int(heightB)
         )
 
+
         if maxWidth <= 0 or maxHeight <= 0:
+
             return image
+
 
         dst = np.array(
             [
@@ -192,10 +1187,12 @@ def potong_dokumen_otomatis(image):
             dtype="float32"
         )
 
+
         M = cv2.getPerspectiveTransform(
             rect,
             dst
         )
+
 
         warped = cv2.warpPerspective(
             img_array,
@@ -206,24 +1203,17 @@ def potong_dokumen_otomatis(image):
             )
         )
 
+
         return Image.fromarray(warped)
+
 
     return image
 
 
-# ==========================================
-# KONFIGURASI HALAMAN
-# ==========================================
-st.set_page_config(
-    page_title="DocuFlow",
-    page_icon="📄",
-    layout="centered"
-)
+# =========================================================
+# SESSION STATE
+# =========================================================
 
-
-# ==========================================
-# STATE MANAGEMENT
-# ==========================================
 if "halaman" not in st.session_state:
 
     st.session_state.halaman = "utama"
@@ -234,9 +1224,10 @@ if "daftar_foto" not in st.session_state:
     st.session_state.daftar_foto = []
 
 
-# ==========================================
-# 1. LOGIN GOOGLE
-# ==========================================
+# =========================================================
+# LOGIN GOOGLE
+# =========================================================
+
 if not st.user.is_logged_in:
 
     st.title("📄 DocuFlow")
@@ -255,14 +1246,16 @@ if not st.user.is_logged_in:
         "🔐 Login dengan Google",
         use_container_width=True
     ):
+
         st.login()
 
     st.stop()
 
 
-# ==========================================
-# 2. USER SUDAH LOGIN
-# ==========================================
+# =========================================================
+# USER LOGIN
+# =========================================================
+
 st.title("📄 DocuFlow")
 
 nama_user = st.user.get(
@@ -276,27 +1269,18 @@ email_user = st.user.get(
 )
 
 
-# ==========================================
-# 3. JIKA SEDANG DI HALAMAN SCANNER
-# ==========================================
+# =========================================================
+# HALAMAN SCANNER
+# =========================================================
+
 if st.session_state.halaman == "scanner":
 
     st.markdown(
         """
         <style>
 
-        .scanner-title {
-            text-align: center;
-            font-size: 22px;
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
-
-        .scanner-subtitle {
-            text-align: center;
-            color: #777;
-            font-size: 14px;
-            margin-bottom: 15px;
+        .scanner-wrapper {
+            margin-top: -20px;
         }
 
         </style>
@@ -304,39 +1288,27 @@ if st.session_state.halaman == "scanner":
         unsafe_allow_html=True
     )
 
-    st.markdown(
-        '<div class="scanner-title">📷 Scan Dokumen</div>',
-        unsafe_allow_html=True
+
+    hasil_scanner = camera_component(
+        key="docuflow_camera",
+        width="stretch",
+        height=720,
+        on_done_change=lambda: None,
+        on_cancel_change=lambda: None
     )
 
-    st.markdown(
-        '<div class="scanner-subtitle">'
-        'Ambil hingga 5 halaman dalam satu dokumen'
-        '</div>',
-        unsafe_allow_html=True
-    )
 
-    # ==========================================
-    # KAMERA SCANNER
-    # ==========================================
-
-    hasil_scanner = camera(
-        key="docuflow_scanner"
-    )
-
-    # ==========================================
-    # JIKA USER MENYELESAIKAN SCAN
-    # ==========================================
+    # =====================================================
+    # SCAN SELESAI
+    # =====================================================
 
     if (
-        isinstance(hasil_scanner, dict)
-        and hasil_scanner.get("action") == "done"
+        hasattr(hasil_scanner, "done")
+        and hasil_scanner.done
     ):
 
-        foto_list = hasil_scanner.get(
-            "photos",
-            []
-        )
+        foto_list = hasil_scanner.done
+
 
         if len(foto_list) == 0:
 
@@ -348,6 +1320,7 @@ if st.session_state.halaman == "scanner":
 
             foto_baru = []
 
+
             try:
 
                 for photo_data in foto_list:
@@ -357,23 +1330,34 @@ if st.session_state.halaman == "scanner":
                         1
                     )[1]
 
+
                     image_bytes = (
                         base64.b64decode(
                             image_data
                         )
                     )
 
+
                     img = Image.open(
-                        io.BytesIO(image_bytes)
+                        io.BytesIO(
+                            image_bytes
+                        )
                     ).convert("RGB")
+
 
                     foto_baru.append(img)
 
-                st.session_state.daftar_foto = foto_baru
 
-                st.session_state.halaman = "utama"
+                st.session_state.daftar_foto = (
+                    foto_baru
+                )
+
+                st.session_state.halaman = (
+                    "utama"
+                )
 
                 st.rerun()
+
 
             except Exception as e:
 
@@ -381,27 +1365,29 @@ if st.session_state.halaman == "scanner":
                     f"Gagal memproses hasil scan: {e}"
                 )
 
-    # ==========================================
-    # JIKA USER MEMBATALKAN
-    # ==========================================
 
-    elif (
-        isinstance(hasil_scanner, dict)
-        and hasil_scanner.get("action") == "cancel"
+    # =====================================================
+    # SCAN DIBATALKAN
+    # =====================================================
+
+    if (
+        hasattr(hasil_scanner, "cancel")
+        and hasil_scanner.cancel
     ):
-
-        st.session_state.halaman = "utama"
 
         st.session_state.daftar_foto = []
 
+        st.session_state.halaman = "utama"
+
         st.rerun()
+
 
     st.stop()
 
 
-# ==========================================
-# 4. HALAMAN UTAMA
-# ==========================================
+# =========================================================
+# HALAMAN UTAMA
+# =========================================================
 
 st.success(
     f"Halo, {nama_user}! 👋"
@@ -412,15 +1398,15 @@ st.caption(
 )
 
 
-if st.button(
-    "Logout"
-):
+if st.button("Logout"):
+
     st.logout()
 
 
-# ==========================================
-# 5. CEK ACCESS TOKEN GOOGLE
-# ==========================================
+# =========================================================
+# ACCESS TOKEN
+# =========================================================
+
 try:
 
     access_token = st.user.tokens["access"]
@@ -441,14 +1427,16 @@ if not access_token:
     st.stop()
 
 
-# ==========================================
-# 6. KONEKSI GOOGLE DRIVE
-# ==========================================
+# =========================================================
+# GOOGLE DRIVE
+# =========================================================
+
 try:
 
     credentials = Credentials(
         token=access_token
     )
+
 
     drive_service = build(
         "drive",
@@ -466,12 +1454,14 @@ except Exception as e:
     st.stop()
 
 
-# ==========================================
-# 7. FOLDER PENYIMPANAN
-# ==========================================
+# =========================================================
+# FOLDER PENYIMPANAN
+# =========================================================
+
 st.subheader(
     "📁 Folder Penyimpanan"
 )
+
 
 try:
 
@@ -491,6 +1481,7 @@ try:
                 drive_error
             ).lower()
 
+
             if (
                 "refresh_token" in error_text
                 or "credentials do not contain" in error_text
@@ -505,22 +1496,29 @@ try:
                     "dengan Google."
                 )
 
+
                 if st.button(
                     "🔄 Login Google Lagi"
                 ):
+
                     st.logout()
+
 
                 st.stop()
 
+
             raise drive_error
+
 
     folders = (
         st.session_state.daftar_folder_drive
     )
 
+
     folder_options = {
         "📂 My Drive": "root"
     }
+
 
     for folder in folders:
 
@@ -528,15 +1526,18 @@ try:
             f"📁 {folder['name']}"
         ] = folder["id"]
 
+
     st.selectbox(
         "Pilih folder untuk menyimpan hasil scan:",
         list(folder_options.keys()),
         key="pilihan_folder_utama"
     )
 
+
     selected_folder_id = folder_options[
         st.session_state.pilihan_folder_utama
     ]
+
 
 except Exception as e:
 
@@ -547,9 +1548,10 @@ except Exception as e:
     selected_folder_id = "root"
 
 
-# ==========================================
-# 8. BUAT FOLDER BARU
-# ==========================================
+# =========================================================
+# BUAT FOLDER BARU
+# =========================================================
+
 with st.expander(
     "➕ Buat Folder Baru"
 ):
@@ -558,6 +1560,7 @@ with st.expander(
         "Nama folder baru",
         placeholder="Contoh: Dokumen Kuliah"
     )
+
 
     if st.button(
         "📁 Buat Folder",
@@ -573,18 +1576,22 @@ with st.expander(
                     new_folder_name.strip()
                 )
 
+
                 st.session_state.daftar_folder_drive = (
                     get_drive_folders(
                         drive_service
                     )
                 )
 
+
                 st.success(
                     f"Folder '{new_folder['name']}' "
                     "berhasil dibuat! 🎉"
                 )
 
+
                 st.rerun()
+
 
             except Exception as e:
 
@@ -599,9 +1606,10 @@ with st.expander(
             )
 
 
-# ==========================================
-# 9. TOMBOL SCAN DOKUMEN
-# ==========================================
+# =========================================================
+# SCAN DOKUMEN
+# =========================================================
+
 st.divider()
 
 st.subheader(
@@ -615,14 +1623,18 @@ if len(st.session_state.daftar_foto) == 0:
         "Belum ada dokumen yang dipindai."
     )
 
+
     if st.button(
         "📷 Scan Dokumen",
         use_container_width=True
     ):
 
-        st.session_state.halaman = "scanner"
+        st.session_state.halaman = (
+            "scanner"
+        )
 
         st.rerun()
+
 
 else:
 
@@ -631,6 +1643,7 @@ else:
         "halaman siap disimpan."
     )
 
+
     if st.button(
         "📷 Scan Ulang / Tambah Dokumen",
         use_container_width=True
@@ -638,23 +1651,28 @@ else:
 
         st.session_state.daftar_foto = []
 
-        st.session_state.halaman = "scanner"
+        st.session_state.halaman = (
+            "scanner"
+        )
 
         st.rerun()
 
 
-# ==========================================
-# 10. PREVIEW HASIL SCAN
-# ==========================================
+# =========================================================
+# PREVIEW
+# =========================================================
+
 if len(st.session_state.daftar_foto) > 0:
 
     st.write(
         "### Preview Hasil Scan"
     )
 
+
     cols = st.columns(
         len(st.session_state.daftar_foto)
     )
+
 
     for i, foto in enumerate(
         st.session_state.daftar_foto
@@ -665,6 +1683,7 @@ if len(st.session_state.daftar_foto) > 0:
             caption=f"Halaman {i + 1}",
             use_container_width=True
         )
+
 
         if cols[i].button(
             "❌ Hapus",
@@ -677,9 +1696,10 @@ if len(st.session_state.daftar_foto) > 0:
             st.rerun()
 
 
-# ==========================================
-# 11. NAMA FILE
-# ==========================================
+# =========================================================
+# NAMA FILE
+# =========================================================
+
 if len(st.session_state.daftar_foto) > 0:
 
     st.divider()
@@ -688,15 +1708,16 @@ if len(st.session_state.daftar_foto) > 0:
         "💾 Simpan Dokumen"
     )
 
+
     file_name = st.text_input(
         "Nama file PDF:",
         value="Dokumen_Scan_DocuFlow"
     )
 
 
-    # ==========================================
+    # =====================================================
     # UPLOAD
-    # ==========================================
+    # =====================================================
 
     if st.button(
         "📤 Simpan ke Google Drive",
@@ -713,9 +1734,9 @@ if len(st.session_state.daftar_foto) > 0:
 
             try:
 
-                # ==========================================
-                # GABUNGKAN FOTO MENJADI PDF
-                # ==========================================
+                # =========================================
+                # BUAT PDF
+                # =========================================
 
                 with st.spinner(
                     "Sedang membuat PDF..."
@@ -727,15 +1748,19 @@ if len(st.session_state.daftar_foto) > 0:
                         in st.session_state.daftar_foto
                     ]
 
+
                     halaman_pertama = (
                         rgb_images[0]
                     )
+
 
                     halaman_sisa = (
                         rgb_images[1:]
                     )
 
+
                     pdf_bytes = io.BytesIO()
+
 
                     halaman_pertama.save(
                         pdf_bytes,
@@ -744,12 +1769,13 @@ if len(st.session_state.daftar_foto) > 0:
                         append_images=halaman_sisa
                     )
 
+
                     pdf_bytes.seek(0)
 
 
-                # ==========================================
+                # =========================================
                 # FOLDER TAHUN
-                # ==========================================
+                # =========================================
 
                 with st.spinner(
                     "Menyiapkan folder Google Drive..."
@@ -759,12 +1785,15 @@ if len(st.session_state.daftar_foto) > 0:
                         selected_folder_id
                     )
 
+
                     match_tahun = re.search(
                         r'\b(19|20)\d{2}\b',
                         file_name
                     )
 
+
                     selected_year = None
+
 
                     if match_tahun:
 
@@ -783,6 +1812,7 @@ if len(st.session_state.daftar_foto) > 0:
                             "and trashed=false"
                         )
 
+
                         year_result = (
                             drive_service.files()
                             .list(
@@ -793,12 +1823,14 @@ if len(st.session_state.daftar_foto) > 0:
                             .execute()
                         )
 
+
                         year_folders = (
                             year_result.get(
                                 "files",
                                 []
                             )
                         )
+
 
                         if year_folders:
 
@@ -816,14 +1848,15 @@ if len(st.session_state.daftar_foto) > 0:
                                 )
                             )
 
+
                             upload_target_id = (
                                 new_year_folder["id"]
                             )
 
 
-                # ==========================================
+                # =========================================
                 # UPLOAD PDF
-                # ==========================================
+                # =========================================
 
                 with st.spinner(
                     "Mengunggah PDF ke Google Drive..."
@@ -837,11 +1870,13 @@ if len(st.session_state.daftar_foto) > 0:
                         ]
                     }
 
+
                     media = MediaIoBaseUpload(
                         pdf_bytes,
                         mimetype="application/pdf",
                         resumable=True
                     )
+
 
                     uploaded_file = (
                         drive_service.files()
@@ -854,19 +1889,21 @@ if len(st.session_state.daftar_foto) > 0:
                     )
 
 
-                # ==========================================
+                # =========================================
                 # BERHASIL
-                # ==========================================
+                # =========================================
 
                 st.success(
                     "🎉 PDF berhasil disimpan "
                     "ke Google Drive!"
                 )
 
+
                 st.write(
                     f"**Nama file:** "
                     f"{uploaded_file.get('name')}"
                 )
+
 
                 if uploaded_file.get(
                     "webViewLink"
@@ -887,12 +1924,14 @@ if len(st.session_state.daftar_foto) > 0:
                 )
 
 
-# ==========================================
-# 12. SCAN DOKUMEN BARU
-# ==========================================
+# =========================================================
+# SCAN BARU
+# =========================================================
+
 if len(st.session_state.daftar_foto) > 0:
 
     st.divider()
+
 
     if st.button(
         "🔄 Selesai / Scan Dokumen Baru",
@@ -901,6 +1940,8 @@ if len(st.session_state.daftar_foto) > 0:
 
         st.session_state.daftar_foto = []
 
-        st.session_state.halaman = "scanner"
+        st.session_state.halaman = (
+            "scanner"
+        )
 
         st.rerun()
