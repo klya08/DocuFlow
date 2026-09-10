@@ -65,7 +65,6 @@ CAMERA_HTML = """
 
     </div>
 
-
     <div class="bottom-panel">
 
         <div id="thumbnailContainer" class="thumbnail-container">
@@ -809,10 +808,10 @@ export default function(component) {
         }
     }
 
+/* =========================================
+   CAPTURE PHOTO
+========================================= */
 
-    /* =========================================
-       CAPTURE PHOTO
-    ========================================= */
 function capturePhoto() {
 
     if (!stream) {
@@ -841,6 +840,7 @@ function capturePhoto() {
         video.videoWidth === 0 ||
         video.videoHeight === 0
     ) {
+
         return;
     }
 
@@ -857,7 +857,7 @@ function capturePhoto() {
 
 
     // =========================================
-    // UKURAN AREA PREVIEW
+    // UKURAN PREVIEW
     // =========================================
 
     const displayWidth =
@@ -867,8 +867,17 @@ function capturePhoto() {
         video.clientHeight;
 
 
+    if (
+        displayWidth === 0 ||
+        displayHeight === 0
+    ) {
+
+        return;
+    }
+
+
     // =========================================
-    // HITUNG OBJECT-FIT: COVER
+    // SESUAIKAN DENGAN object-fit: cover
     // =========================================
 
     const videoRatio =
@@ -890,9 +899,6 @@ function capturePhoto() {
 
     if (videoRatio > displayRatio) {
 
-        // Kamera lebih lebar
-        // sisi kiri-kanan dipotong
-
         sourceWidth =
             videoHeight * displayRatio;
 
@@ -900,9 +906,6 @@ function capturePhoto() {
             (videoWidth - sourceWidth) / 2;
 
     } else {
-
-        // Kamera lebih tinggi
-        // sisi atas-bawah dipotong
 
         sourceHeight =
             videoWidth / displayRatio;
@@ -913,7 +916,7 @@ function capturePhoto() {
 
 
     // =========================================
-    // CANVAS MENGGUNAKAN RESOLUSI ASLI
+    // CANVAS RESOLUSI TINGGI
     // =========================================
 
     const canvas =
@@ -957,7 +960,7 @@ function capturePhoto() {
 
 
     // =========================================
-    // SIMPAN KUALITAS TINGGI
+    // KUALITAS FOTO TINGGI
     // =========================================
 
     const image =
@@ -984,108 +987,6 @@ function capturePhoto() {
             "block";
     }
 }
-    
-
-    // =========================================
-    // SESUAIKAN HASIL FOTO DENGAN AREA PREVIEW
-    // =========================================
-
-    const videoWidth =
-        video.videoWidth;
-
-    const videoHeight =
-        video.videoHeight;
-
-
-    const displayWidth =
-        video.clientWidth;
-
-    const displayHeight =
-        video.clientHeight;
-
-
-    // object-fit: cover
-    const scale =
-        Math.max(
-            displayWidth / videoWidth,
-            displayHeight / videoHeight
-        );
-
-
-    // Ukuran gambar asli yang terlihat
-    // di dalam preview
-    const sourceWidth =
-        displayWidth / scale;
-
-    const sourceHeight =
-        displayHeight / scale;
-
-
-    // Posisi crop di gambar asli
-    const sourceX =
-        (videoWidth - sourceWidth) / 2;
-
-    const sourceY =
-        (videoHeight - sourceHeight) / 2;
-
-
-    const canvas =
-        document.createElement("canvas");
-
-
-    canvas.width =
-        Math.round(sourceWidth);
-
-    canvas.height =
-        Math.round(sourceHeight);
-
-
-    const context =
-        canvas.getContext("2d");
-
-
-    context.drawImage(
-        video,
-
-        sourceX,
-        sourceY,
-
-        sourceWidth,
-        sourceHeight,
-
-        0,
-        0,
-
-        canvas.width,
-        canvas.height
-    );
-
-
-    const image =
-        canvas.toDataURL(
-            "image/jpeg",
-            0.92
-        );
-
-
-    photos.push(image);
-
-
-    renderThumbnails();
-
-    updateCounter();
-
-
-    if (photos.length >= 5) {
-
-        cameraMessage.textContent =
-            "Maksimal 5 halaman tercapai.";
-
-        cameraMessage.style.display =
-            "block";
-    }
-}
-
 
     /* =========================================
        CANCEL
